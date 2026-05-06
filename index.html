@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM + Offertsystem</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f5f4f0}
+  #appFrame{border:0;width:100%;height:100vh;display:block;background:#f5f4f0}
+  .noscript{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;padding:2rem;color:#1a1a18}
+</style>
+</head>
+<body>
+<noscript><div class="noscript">Den här appen kräver JavaScript för att fungera.</div></noscript>
+<iframe id="appFrame" title="CRM och Offertsystem"></iframe>
+
+<template id="tpl-crm"><!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM — Säljverktyg</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#fff;--bg3:#eeecea;--bg4:#e8e6e2;
+  --text:#1a1a18;--text2:#6b6a66;--text3:#9e9d99;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --navy:#1a3a5c;--navy2:#0f2640;--navy-light:#e8eef5;
+  --green:#2d6a11;--green-light:#e8f3de;
+  --amber:#7a4a0a;--amber-light:#faeeda;
+  --red:#9a2828;--red-light:#fceaea;
+  --blue:#185fa5;--blue-light:#e6f1fb;
+  --purple:#5a3a8a;--purple-light:#f0ebfa;
+  --gray-light:#f1efe8;--gray-text:#5f5e5a;
+  --r:8px;--rl:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06);
+}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--navy);display:flex;flex-direction:column;padding:0;flex-shrink:0;color:white}
+.sidebar-header{padding:1.25rem 1.25rem 0}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.logo-img{width:36px;height:36px;border-radius:var(--r);object-fit:cover;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden}
+.logo-img img{width:100%;height:100%;object-fit:cover}
+.logo-text{font-size:15px;font-weight:600;color:white}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px}
+.nav{padding:0 0.75rem;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;padding:1rem 0.5rem 0.4rem;margin-top:0.5rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r);cursor:pointer;color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:2px;transition:all 0.15s;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,0.1);color:white}
+.nav-item.active{background:rgba(255,255,255,0.15);color:white;font-weight:500}
+.nav-item svg{flex-shrink:0;opacity:0.8}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,0.1);margin-top:auto}
+.sidebar-footer a{display:block;color:rgba(255,255,255,0.6);font-size:12px;text-decoration:none;padding:5px 0;transition:color 0.15s}
+.sidebar-footer a:hover{color:white}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.topbar{padding:0.9rem 1.5rem;background:var(--bg2);border-bottom:0.5px solid var(--border2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text);margin-right:auto}
+.content{padding:1.5rem;flex:1}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--bg2);border-radius:var(--r);border:0.5px solid var(--border);padding:14px 16px;box-shadow:var(--shadow)}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.stat-value{font-size:24px;font-weight:600}
+
+/* BUTTONS */
+.btn{padding:7px 15px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--bg3)}
+.btn-primary{background:var(--navy);color:white;border-color:var(--navy)}
+.btn-primary:hover{background:var(--navy2)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-danger{color:var(--red);border-color:#f09595}
+.btn-danger:hover{background:var(--red-light)}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:var(--bg3)}
+
+/* SEARCH/FILTER */
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap}
+.search{flex:1;min-width:200px;position:relative}
+.search input{width:100%;padding:8px 12px 8px 34px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:13px;outline:none;font-family:inherit}
+.search input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,58,92,0.1)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+select{padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:inherit}
+select:focus{border-color:var(--navy)}
+
+/* TABLE */
+.table-card{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg3);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+td{padding:11px 14px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#fafaf8;cursor:pointer}
+.empty-state{text-align:center;padding:3rem;color:var(--text2);font-size:13px}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+.badge-gray{background:var(--gray-light);color:var(--gray-text)}
+.badge-navy{background:var(--navy-light);color:var(--navy)}
+
+.date-future{color:var(--green)}
+.date-today{color:var(--amber);font-weight:600}
+.date-past{color:var(--red);font-weight:600}
+.date-empty{color:var(--text3)}
+
+/* OVERLAY / MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);width:100%;max-width:700px;padding:1.75rem;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-header h2{font-size:16px;font-weight:600}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.close-btn{width:28px;height:28px;border-radius:50%;border:0.5px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:16px;transition:all 0.15s}
+.close-btn:hover{background:var(--bg3)}
+
+/* FORM */
+.section-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin:1.25rem 0 0.75rem;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-full{grid-column:1/-1}
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color 0.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,58,92,0.08)}
+.form-group textarea{resize:vertical;min-height:72px;line-height:1.5}
+
+/* COMMENTS */
+.comments{margin-top:8px;max-height:200px;overflow-y:auto}
+.comment{background:var(--bg3);border-radius:var(--r);padding:8px 12px;margin-bottom:6px}
+.comment-meta{font-size:11px;color:var(--text3);margin-bottom:3px}
+.comment-text{font-size:13px}
+
+/* MAIL MODAL */
+.mail-modal{background:var(--bg2);border-radius:var(--rl);width:100%;max-width:660px;padding:1.75rem;margin:auto;border:0.5px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1.25rem}
+.tab{padding:6px 14px;border-radius:99px;border:0.5px solid var(--border2);font-size:12px;cursor:pointer;background:none;color:var(--text2);font-family:inherit;transition:all 0.15s}
+.tab:hover{background:var(--bg3);color:var(--text)}
+.tab.active{background:var(--navy);color:white;border-color:var(--navy)}
+.mail-preview{background:var(--bg3);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1rem}
+.mail-preview-subject{font-size:12px;color:var(--text2);margin-bottom:6px}
+.mail-preview-subject span{font-weight:600;color:var(--text)}
+.mail-preview-body{font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.gmail-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#ea4335;color:white;border:none;border-radius:var(--r);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s}
+.gmail-btn:hover{background:#c5372b}
+
+/* SETTINGS PAGE */
+.settings-page{max-width:680px}
+.setting-card{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.setting-card h3{font-size:14px;font-weight:600;margin-bottom:1rem;color:var(--text)}
+.setting-row{display:flex;align-items:flex-start;gap:1rem;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.setting-row:last-child{border-bottom:none;padding-bottom:0}
+.setting-row-label{flex:1;font-size:13px;color:var(--text2);padding-top:2px}
+.setting-row-label small{display:block;font-size:11px;color:var(--text3);margin-top:2px}
+.setting-row input,.setting-row select{padding:7px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;color:var(--text);background:var(--bg2);outline:none;min-width:200px}
+.setting-row input:focus,.setting-row select:focus{border-color:var(--navy)}
+.setting-row input[type=number]{min-width:80px}
+
+/* TEMPLATE EDITOR */
+.template-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:10px;box-shadow:var(--shadow)}
+.template-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.template-item-header h4{font-size:13px;font-weight:600;color:var(--text)}
+
+/* LOGO UPLOAD */
+.logo-upload{width:80px;height:80px;border-radius:var(--r);border:2px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:border-color 0.15s;background:var(--bg3)}
+.logo-upload:hover{border-color:var(--navy)}
+.logo-upload img{width:100%;height:100%;object-fit:contain}
+.logo-upload-text{font-size:11px;color:var(--text3);text-align:center;margin-top:4px}
+
+/* OFFERT LINK */
+.offert-link{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:var(--navy-light);color:var(--navy);border-radius:99px;font-size:11px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s}
+.offert-link:hover{background:var(--navy);color:white}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-img" id="sidebarLogo">🏠</div>
+      <div>
+        <div class="logo-text" id="sidebarCompany">CRM</div>
+        <div class="logo-sub">Säljverktyg</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Kunder</div>
+    <div class="nav-item active" onclick="showPage('customers')" id="nav-customers">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.5"/><path d="M2 13c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+      Alla kunder
+    </div>
+    <div class="nav-section">System</div>
+    <div class="nav-item" onclick="showPage('templates')" id="nav-templates">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 10h4"/></svg>
+      Mailmallar
+    </div>
+    <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 2v1M8 13v1M2 8h1M13 8h1M3.8 3.8l.7.7M11.5 11.5l.7.7M3.8 12.2l.7-.7M11.5 4.5l.7-.7"/></svg>
+      Inställningar
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div id="sync-status" style="font-size:11px;color:#7dd3b0;padding:4px 0;transition:opacity 1s">☁ Ansluter...</div>
+    <a href="#" onclick="parent.loadApp('offert');return false;">📄 Offertsystem</a>
+    <a href="#" onclick="exportData()">⬇ Exportera backup</a>
+    <a href="#" onclick="document.getElementById('importFile').click()">⬆ Importera data</a>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <a href="#" onclick="parent.manualPull()" style="color:#a0c4e8">🔄 Hämta senaste från moln</a>
+    <a href="#" onclick="parent.saveAsHTML()" style="color:#7dd3b0;font-weight:600">💾 Spara som ny HTML-fil</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CUSTOMERS PAGE -->
+  <div id="page-customers">
+    <div class="topbar">
+      <span class="topbar-title">Kunder</span>
+      <div class="search">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5l3 3"/></svg>
+        <input type="text" id="search" placeholder="Sök namn, telefon, mail..." oninput="renderTable()">
+      </div>
+      <select id="filterStatus" onchange="renderTable()">
+        <option value="">Alla statusar</option>
+        <option>Pågående</option>
+        <option>Signerad</option>
+        <option>Avvaktar</option>
+        <option>Tackat nej</option>
+      </select>
+      <button class="btn btn-primary" onclick="openCustomerModal(null)">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+        Ny kund
+      </button>
+    </div>
+    <div class="content">
+      <div class="stats" id="stats"></div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Kund</th><th>Kampanj</th><th>Telefon</th>
+              <th>Ring 1</th><th>Mail 2</th><th>Ring 2</th><th>Mail 3</th>
+              <th>Status</th><th>Offert</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATES PAGE -->
+  <div id="page-templates" style="display:none">
+    <div class="topbar">
+      <span class="topbar-title">Mailmallar</span>
+      <button class="btn btn-primary" onclick="addTemplate()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+        Ny mall
+      </button>
+    </div>
+    <div class="content">
+      <div class="settings-page">
+        <p style="color:var(--text2);margin-bottom:1.25rem;font-size:13px">Använd <code style="background:var(--bg3);padding:2px 6px;border-radius:4px">{namn}</code> för kundens förnamn och <code style="background:var(--bg3);padding:2px 6px;border-radius:4px">{avsändare}</code> för din signatur.</p>
+        <div id="templates-editor"></div>
+        <button class="btn btn-primary" onclick="saveTemplates()" style="margin-top:0.5rem">Spara alla mallar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div id="page-settings" style="display:none">
+    <div class="topbar"><span class="topbar-title">Inställningar</span></div>
+    <div class="content">
+      <div class="settings-page">
+
+        <div class="setting-card">
+          <h3>Logotyp</h3>
+          <div style="display:flex;align-items:center;gap:1.5rem">
+            <div class="logo-upload" id="logoUploadBox" onclick="document.getElementById('logoFileInput').click()">
+              <img id="logoPreview" style="display:none">
+              <div id="logoUploadPlaceholder">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text3)"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:4px">Ladda upp logotyp</div>
+              <div style="font-size:12px;color:var(--text2)">Syns i sidomenyn och på offerter</div>
+              <button class="btn btn-sm" style="margin-top:8px" onclick="document.getElementById('logoFileInput').click()">Välj bild</button>
+              <button class="btn btn-sm btn-danger" style="margin-left:6px" onclick="removeLogo()">Ta bort</button>
+            </div>
+          </div>
+          <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
+        </div>
+
+        <div class="setting-card">
+          <h3>Företagsinformation</h3>
+          <div class="setting-row">
+            <div class="setting-row-label">Företagsnamn</div>
+            <input type="text" id="set-company" placeholder="Ex: Renovera Nu Stockholm AB">
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-label">Ditt namn</div>
+            <input type="text" id="set-name" placeholder="Ex: Erik Svensson">
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-label">Telefon</div>
+            <input type="text" id="set-phone" placeholder="Ex: 070-123 45 67">
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-label">E-post</div>
+            <input type="text" id="set-email" placeholder="Ex: erik@foretaget.se">
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <h3>Gmail</h3>
+          <div class="setting-row">
+            <div class="setting-row-label">
+              Gmail-konto nummer
+              <small>0 = första kontot, 1 = andra osv. Kolla URL:en i Gmail: mail.google.com/mail/u/<strong>0</strong>/</small>
+            </div>
+            <input type="number" id="set-gmail" min="0" max="9" placeholder="0">
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <h3>Data</h3>
+          <div class="setting-row">
+            <div class="setting-row-label">Exportera backup</div>
+            <button class="btn btn-sm" onclick="exportData()">Ladda ner JSON</button>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-label">Importera data</div>
+            <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">Välj fil</button>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-label">Rensa all kunddata</div>
+            <button class="btn btn-sm btn-danger" onclick="clearAll()">Rensa</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveSettings()">Spara inställningar</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- CUSTOMER MODAL -->
+<div class="overlay" id="customerOverlay">
+<div class="modal">
+  <div class="modal-header">
+    <h2 id="modalTitle">Ny kund</h2>
+    <button class="close-btn" onclick="closeCustomerModal()">×</button>
+  </div>
+
+  <div class="section-label">Kundinformation</div>
+  <div class="form-grid">
+    <div class="form-group"><label>Namn *</label><input id="f-name" type="text" placeholder="Förnamn Efternamn"></div>
+    <div class="form-group"><label>Kampanj</label><input id="f-kampanj" type="text"></div>
+    <div class="form-group"><label>Telefon</label><input id="f-telefon" type="tel"></div>
+    <div class="form-group"><label>E-post</label><input id="f-mail" type="email"></div>
+    <div class="form-group form-full"><label>Adress</label><input id="f-adress" type="text"></div>
+    <div class="form-group"><label>Startvecka</label><input id="f-startvecka" type="text"></div>
+    <div class="form-group"><label>Storlek</label><input id="f-storlek" type="text"></div>
+  </div>
+
+  <div class="section-label">Uppföljning</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Offert datum</label>
+      <input id="f-offert" type="date" oninput="calcDates()">
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="f-status">
+        <option>Pågående</option>
+        <option>Signerad</option>
+        <option>Avvaktar</option>
+        <option>Tackat nej</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Ring 1 (+2 dagar)</label><input id="f-ring1" type="date"></div>
+    <div class="form-group"><label>Mail 2 (+5 dagar)</label><input id="f-mail2" type="date"></div>
+    <div class="form-group"><label>Ring 2 (+8 dagar)</label><input id="f-ring2" type="date"></div>
+    <div class="form-group"><label>Mail 3 kampanj (+14 dagar)</label><input id="f-mail3" type="date"></div>
+  </div>
+
+  <div class="section-label">Mailutskick</div>
+  <div id="mail-buttons" style="display:flex;gap:6px;flex-wrap:wrap;min-height:32px"></div>
+
+  <div class="section-label">Offerter</div>
+  <div id="customer-offerts-panel" style="margin-bottom:10px"></div>
+
+  <div class="section-label">Anteckningar & historik</div>
+  <div class="form-group form-full" style="margin-bottom:10px">
+    <label>Ny anteckning</label>
+    <textarea id="f-comment" placeholder="Skriv anteckning om detta samtal, möte eller händelse..."></textarea>
+  </div>
+  <div id="comments-list" class="comments"></div>
+
+  <div class="modal-footer">
+    <button class="btn btn-danger" id="deleteBtn" onclick="deleteCustomer()" style="display:none">Ta bort kund</button>
+    <div style="display:flex;gap:8px;margin-left:auto">
+      <button class="btn" onclick="closeCustomerModal()">Avbryt</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Spara</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MAIL MODAL -->
+<div class="overlay" id="mailOverlay">
+<div class="mail-modal">
+  <div class="modal-header">
+    <h2 id="mailModalTitle">Skicka mail</h2>
+    <button class="close-btn" onclick="closeMailModal()">×</button>
+  </div>
+  <div class="tabs" id="mailTabs"></div>
+  <div class="mail-preview">
+    <div class="mail-preview-subject">Ämne: <span id="previewSubject"></span></div>
+    <div class="mail-preview-body" id="previewBody"></div>
+  </div>
+  <div class="form-group" style="margin-bottom:1rem">
+    <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px">Anpassa meddelandet</label>
+    <textarea id="mailCustomText" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;color:var(--text);background:var(--bg2);resize:vertical;min-height:130px;outline:none" oninput="updateMailPreview()"></textarea>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;color:var(--text3)">Öppnar Gmail i ny flik</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeMailModal()">Avbryt</button>
+      <button class="gmail-btn" onclick="openGmail()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg>
+        Öppna i Gmail
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+let customers = JSON.parse(localStorage.getItem('crm_customers')||'[]');
+let settings  = JSON.parse(localStorage.getItem('crm_settings')||'{}');
+let templates = JSON.parse(localStorage.getItem('crm_templates')||'null') || defaultTemplates();
+let editingId = null, currentMailCustomer = null, currentTplIdx = 0;
+
+function defaultTemplates(){return[
+  {name:'Mail 2',subject:'Följer upp vår offert – {namn}',body:`Hej {namn},\n\nJag hoppas att allt är bra! Jag ville följa upp offerten vi skickade häromdagen.\n\nHar du haft möjlighet att titta på den? Hör gärna av dig om du har frågor.\n\nMed vänliga hälsningar\n{avsändare}`},
+  {name:'Mail 3 kampanj',subject:'Exklusivt erbjudande – {namn}',body:`Hej {namn},\n\nJag vill passa på att informera dig om ett tidsbegränsat erbjudande vi har just nu.\n\nHör gärna av dig om du vill veta mer!\n\nVänliga hälsningar\n{avsändare}`},
+  {name:'Välkommen',subject:'Välkommen som kund, {namn}!',body:`Hej {namn},\n\nVälkommen och tack för att du valt oss!\n\nVi ser fram emot ett gott samarbete. Tveka inte att höra av dig om du behöver hjälp.\n\nMed vänliga hälsningar\n{avsändare}`},
+  {name:'Uppföljning',subject:'Hur kan vi hjälpa dig, {namn}?',body:`Hej {namn},\n\nJag ville stämma av hur det går och om vi kan hjälpa dig med något.\n\nVänliga hälsningar\n{avsändare}`},
+];}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function addDays(d,n){if(!d)return'';const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);}
+function today(){return new Date().toISOString().slice(0,10);}
+function fmtDate(d){
+  if(!d)return'<span class="date-empty">—</span>';
+  const t=today();
+  const cls=d<t?'date-past':d===t?'date-today':'date-future';
+  return`<span class="${cls}">${d.slice(5).replace('-','/')}</span>`;
+}
+function statusBadge(s){
+  const m={'Signerad':'badge-green','Pågående':'badge-amber','Avvaktar':'badge-blue','Tackat nej':'badge-red'};
+  return`<span class="badge ${m[s]||'badge-gray'}">${s||'—'}</span>`;
+}
+function senderSig(){
+  const parts=[settings.name,settings.company?`| ${settings.company}`:'',settings.phone?`| ${settings.phone}`:''];
+  return parts.filter(Boolean).join(' ')||'Ditt namn';
+}
+function fillTpl(tpl,c){
+  const fn=(c.name||'').split(' ')[0]||c.name||'kund';
+  return tpl.replace(/\{namn\}/g,fn).replace(/\{avsändare\}/g,senderSig());
+}
+function save(){localStorage.setItem('crm_customers',JSON.stringify(customers));}
+function getOffertsForCustomer(id){
+  try{return JSON.parse(localStorage.getItem('crm_offerts')||'[]').filter(o=>o.customerId===id);}catch{return[];}
+}
+
+// ── PAGES ─────────────────────────────────────────────────────
+function showPage(p){
+  ['customers','templates','settings'].forEach(id=>{
+    document.getElementById(`page-${id}`).style.display=id===p?'':'none';
+    const n=document.getElementById(`nav-${id}`);
+    if(n)n.classList.toggle('active',id===p);
+  });
+  if(p==='templates')renderTemplatesEditor();
+  if(p==='settings')loadSettings();
+}
+
+// ── LOGO ─────────────────────────────────────────────────────
+function handleLogoUpload(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    settings.logo=ev.target.result;
+    localStorage.setItem('crm_settings',JSON.stringify(settings));
+    applyLogo();
+  };
+  r.readAsDataURL(file);
+}
+function removeLogo(){delete settings.logo;localStorage.setItem('crm_settings',JSON.stringify(settings));applyLogo();}
+function applyLogo(){
+  const prev=document.getElementById('logoPreview');
+  const ph=document.getElementById('logoUploadPlaceholder');
+  const sl=document.getElementById('sidebarLogo');
+  if(settings.logo){
+    prev.src=settings.logo; prev.style.display='block'; ph.style.display='none';
+    sl.innerHTML=`<img src="${settings.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px">`;
+  } else {
+    prev.style.display='none'; ph.style.display=''; sl.innerHTML='🏠';
+  }
+  if(settings.company)document.getElementById('sidebarCompany').textContent=settings.company;
+}
+
+// ── STATS & TABLE ─────────────────────────────────────────────
+function renderStats(){
+  const t=today();
+  const total=customers.length;
+  const sig=customers.filter(c=>c.status==='Signerad').length;
+  const pag=customers.filter(c=>c.status==='Pågående').length;
+  const avv=customers.filter(c=>c.status==='Avvaktar').length;
+  const over=customers.filter(c=>c.status!=='Signerad'&&c.status!=='Tackat nej'&&[c.ring1,c.mail2,c.ring2,c.mail3].some(d=>d&&d<t)).length;
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="stat-label">Totalt</div><div class="stat-value">${total}</div></div>
+    <div class="stat"><div class="stat-label">Signerade</div><div class="stat-value" style="color:var(--green)">${sig}</div></div>
+    <div class="stat"><div class="stat-label">Pågående</div><div class="stat-value" style="color:var(--amber)">${pag}</div></div>
+    <div class="stat"><div class="stat-label">Avvaktar</div><div class="stat-value" style="color:var(--blue)">${avv}</div></div>
+    <div class="stat"><div class="stat-label">Försenade</div><div class="stat-value" style="color:var(--red)">${over}</div></div>`;
+}
+function renderTable(){
+  renderStats();
+  const q=document.getElementById('search').value.toLowerCase();
+  const sf=document.getElementById('filterStatus').value;
+  const filtered=customers.filter(c=>{
+    const hit=!q||[c.name,c.telefon,c.mail,c.kampanj].some(v=>v&&v.toLowerCase().includes(q));
+    return hit&&(!sf||c.status===sf);
+  });
+  const tbody=document.getElementById('tbody');
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state">Inga kunder hittades</div></td></tr>`;return;}
+  tbody.innerHTML=filtered.map(c=>{
+    const offerts=getOffertsForCustomer(c.id);
+    const offertBadge=offerts.length?`<span class="offert-link" onclick="event.stopPropagation();parent.loadApp('offert','customer=${c.id}')">📄 ${offerts.length} offert${offerts.length>1?'er':''}</span>`:'<span style="color:var(--text3);font-size:11px">—</span>';
+    return`<tr onclick="openCustomerModal('${c.id}')">
+      <td><strong>${c.name||'—'}</strong>${c.mail?`<div style="font-size:11px;color:var(--text2)">${c.mail}</div>`:''}</td>
+      <td>${c.kampanj||'—'}</td>
+      <td>${c.telefon||'—'}</td>
+      <td>${fmtDate(c.ring1)}</td><td>${fmtDate(c.mail2)}</td><td>${fmtDate(c.ring2)}</td><td>${fmtDate(c.mail3)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${offertBadge}</td>
+      <td onclick="event.stopPropagation();openMailModal('${c.id}')">
+        <button class="btn btn-ghost btn-sm" title="Skicka mail">✉</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CUSTOMER MODAL ────────────────────────────────────────────
+function openCustomerModal(id){
+  editingId=id;
+  const c=id?customers.find(x=>x.id===id):null;
+  document.getElementById('modalTitle').textContent=c?(c.name||'Redigera kund'):'Ny kund';
+  ['name','kampanj','telefon','mail','adress','startvecka','storlek'].forEach(k=>{
+    document.getElementById(`f-${k}`).value=c?.[k]||'';
+  });
+  document.getElementById('f-offert').value=c?.offert||'';
+  document.getElementById('f-status').value=c?.status||'Pågående';
+  ['ring1','mail2','ring2','mail3'].forEach(k=>document.getElementById(`f-${k}`).value=c?.[k]||'');
+  document.getElementById('f-comment').value='';
+  document.getElementById('deleteBtn').style.display=c?'':'none';
+  renderComments(c?.comments||[]);
+  renderMailBtns(c);
+  renderCustomerOfferts(c);
+  document.getElementById('customerOverlay').classList.add('open');
+}
+function renderMailBtns(c){
+  const el=document.getElementById('mail-buttons');
+  if(!c){el.innerHTML='<span style="font-size:12px;color:var(--text3)">Spara kunden först för att skicka mail</span>';return;}
+  el.innerHTML=templates.map((t,i)=>
+    `<button class="btn btn-sm" onclick="event.stopPropagation();openMailModal('${c.id}',${i})">✉ ${t.name}</button>`
+  ).join('');
+}
+function renderCustomerOfferts(c){
+  const el=document.getElementById('customer-offerts-panel');
+  if(!el)return;
+  if(!c){
+    el.innerHTML='<span style="font-size:12px;color:var(--text3)">Spara kunden för att skapa offerter</span>';
+    return;
+  }
+  const offerts=getOffertsForCustomer(c.id);
+  const cardsHTML=offerts.length?offerts.map(o=>`
+    <div onclick="parent.loadApp('offert','edit=${o.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border-radius:var(--r);margin-bottom:6px;cursor:pointer;border:0.5px solid var(--border2);transition:background 0.15s" onmouseover="this.style.background='var(--navy-light)'" onmouseout="this.style.background='var(--bg3)'">
+      <div>
+        <div style="font-size:13px;font-weight:600">📄 ${o.offertNr||'Offert '+o.datum}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">${o.datum} · ${o.rooms?.map(r=>r.type).join(', ')||'—'} · <strong>${fmt(o.totalInclMoms)} kr</strong> · efter ROT: ${fmt(o.afterRot)} kr</div>
+      </div>
+      <span class="badge ${o.status==='Signerad'?'badge-green':o.status==='Tackat nej'?'badge-red':'badge-amber'}">${o.status||'—'}</span>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Inga offerter ännu</div>';
+  el.innerHTML=cardsHTML+`<a href="#" onclick="parent.loadApp('offert','customer=${c.id}');return false;" class="btn btn-sm btn-primary" style="margin-top:6px;text-decoration:none">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+    Skapa ny offert
+  </a>`;
+}
+function fmt(n){return Math.round(n).toLocaleString('sv-SE');}
+function renderComments(comments){
+  const el=document.getElementById('comments-list');
+  el.innerHTML=comments.length?comments.slice().reverse().map(c=>
+    `<div class="comment"><div class="comment-meta">${c.date}</div><div class="comment-text">${c.text}</div></div>`
+  ).join(''):'';
+}
+function calcDates(){
+  const v=document.getElementById('f-offert').value;
+  document.getElementById('f-ring1').value=addDays(v,2);
+  document.getElementById('f-mail2').value=addDays(v,5);
+  document.getElementById('f-ring2').value=addDays(v,8);
+  document.getElementById('f-mail3').value=addDays(v,14);
+}
+function saveCustomer(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('Ange ett namn');return;}
+  const existing=editingId?customers.find(c=>c.id===editingId):null;
+  const comments=existing?.comments||[];
+  const txt=document.getElementById('f-comment').value.trim();
+  if(txt){
+    const now=new Date().toLocaleString('sv-SE',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    comments.push({date:now,text:txt});
+  }
+  const data={
+    id:editingId||Date.now().toString(),
+    name, kampanj:document.getElementById('f-kampanj').value,
+    telefon:document.getElementById('f-telefon').value,
+    mail:document.getElementById('f-mail').value,
+    adress:document.getElementById('f-adress').value,
+    startvecka:document.getElementById('f-startvecka').value,
+    storlek:document.getElementById('f-storlek').value,
+    offert:document.getElementById('f-offert').value,
+    status:document.getElementById('f-status').value,
+    ring1:document.getElementById('f-ring1').value,
+    mail2:document.getElementById('f-mail2').value,
+    ring2:document.getElementById('f-ring2').value,
+    mail3:document.getElementById('f-mail3').value,
+    comments
+  };
+  if(editingId) customers=customers.map(c=>c.id===editingId?data:c);
+  else customers.push(data);
+  save(); closeCustomerModal(); renderTable();
+}
+function deleteCustomer(){
+  if(!editingId||!confirm('Ta bort kunden?'))return;
+  customers=customers.filter(c=>c.id!==editingId);
+  save(); closeCustomerModal(); renderTable();
+}
+function closeCustomerModal(){document.getElementById('customerOverlay').classList.remove('open');editingId=null;}
+
+// ── MAIL MODAL ────────────────────────────────────────────────
+function openMailModal(customerId,tplIdx=0){
+  currentMailCustomer=customers.find(c=>c.id===customerId);
+  if(!currentMailCustomer)return;
+  currentTplIdx=tplIdx;
+  document.getElementById('mailModalTitle').textContent=`Mail till ${currentMailCustomer.name||'kund'}`;
+  renderMailTabs();
+  document.getElementById('mailCustomText').value=fillTpl(templates[tplIdx].body,currentMailCustomer);
+  updateMailPreview();
+  document.getElementById('mailOverlay').classList.add('open');
+}
+function renderMailTabs(){
+  document.getElementById('mailTabs').innerHTML=templates.map((t,i)=>
+    `<button class="tab ${i===currentTplIdx?'active':''}" onclick="selectMailTab(${i})">${t.name}</button>`
+  ).join('');
+}
+function selectMailTab(i){
+  currentTplIdx=i;
+  document.querySelectorAll('#mailTabs .tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.getElementById('mailCustomText').value=fillTpl(templates[i].body,currentMailCustomer);
+  updateMailPreview();
+}
+function updateMailPreview(){
+  if(!currentMailCustomer)return;
+  const subj=fillTpl(templates[currentTplIdx].subject,currentMailCustomer);
+  document.getElementById('previewSubject').textContent=subj;
+  document.getElementById('previewBody').textContent=document.getElementById('mailCustomText').value;
+}
+function openGmail(){
+  if(!currentMailCustomer)return;
+  const to=currentMailCustomer.mail||'';
+  const subj=encodeURIComponent(fillTpl(templates[currentTplIdx].subject,currentMailCustomer));
+  const body=encodeURIComponent(document.getElementById('mailCustomText').value);
+  const acc=settings.gmailAccount??0;
+  window.open(`https://mail.google.com/mail/u/${acc}/?view=cm&to=${to}&su=${subj}&body=${body}`,'_blank');
+}
+function closeMailModal(){document.getElementById('mailOverlay').classList.remove('open');}
+
+// ── TEMPLATES EDITOR ──────────────────────────────────────────
+function renderTemplatesEditor(){
+  document.getElementById('templates-editor').innerHTML=templates.map((t,i)=>`
+    <div class="template-item">
+      <div class="template-item-header">
+        <h4>Mall ${i+1}</h4>
+        <button class="btn btn-sm btn-danger" onclick="removeTemplate(${i})">Ta bort</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Mallnamn</label><input type="text" id="tpl-name-${i}" value="${t.name}"></div>
+        <div class="form-group"><label>Ämnesrad</label><input type="text" id="tpl-subj-${i}" value="${t.subject}" style="width:100%"></div>
+        <div class="form-group form-full"><label>Meddelande</label><textarea id="tpl-body-${i}" style="min-height:120px">${t.body}</textarea></div>
+      </div>
+    </div>`).join('');
+}
+function addTemplate(){
+  templates.push({name:`Mall ${templates.length+1}`,subject:'Hej {namn}',body:`Hej {namn},\n\n\n\nMed vänliga hälsningar\n{avsändare}`});
+  renderTemplatesEditor();
+}
+function removeTemplate(i){
+  if(!confirm('Ta bort mallen?'))return;
+  templates.splice(i,1);
+  renderTemplatesEditor();
+}
+function saveTemplates(){
+  templates=templates.map((t,i)=>({
+    name:document.getElementById(`tpl-name-${i}`).value,
+    subject:document.getElementById(`tpl-subj-${i}`).value,
+    body:document.getElementById(`tpl-body-${i}`).value
+  }));
+  localStorage.setItem('crm_templates',JSON.stringify(templates));
+  alert('Mallar sparade!');
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────
+function loadSettings(){
+  document.getElementById('set-company').value=settings.company||'';
+  document.getElementById('set-name').value=settings.name||'';
+  document.getElementById('set-phone').value=settings.phone||'';
+  document.getElementById('set-email').value=settings.email||'';
+  document.getElementById('set-gmail').value=settings.gmailAccount??0;
+}
+function saveSettings(){
+  settings.company=document.getElementById('set-company').value;
+  settings.name=document.getElementById('set-name').value;
+  settings.phone=document.getElementById('set-phone').value;
+  settings.email=document.getElementById('set-email').value;
+  settings.gmailAccount=parseInt(document.getElementById('set-gmail').value)||0;
+  localStorage.setItem('crm_settings',JSON.stringify(settings));
+  applyLogo();
+  alert('Inställningar sparade!');
+}
+
+// ── IMPORT / EXPORT ───────────────────────────────────────────
+function exportData(){
+  const offerts=JSON.parse(localStorage.getItem('crm_offerts')||'[]');
+  const imgSettings=JSON.parse(localStorage.getItem('crm_img_settings')||'{}');
+  const articles=JSON.parse(localStorage.getItem('crm_articles')||'null');
+  const blob=new Blob([JSON.stringify({customers,settings,templates,offerts,imgSettings,articles},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`crm_backup_${today()}.json`;a.click();
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.customers){customers=d.customers;save();}
+      if(d.settings){settings=d.settings;localStorage.setItem('crm_settings',JSON.stringify(settings));}
+      if(d.templates){templates=d.templates;localStorage.setItem('crm_templates',JSON.stringify(templates));}
+      if(d.offerts){localStorage.setItem('crm_offerts',JSON.stringify(d.offerts));}
+      if(d.imgSettings){localStorage.setItem('crm_img_settings',JSON.stringify(d.imgSettings));}
+      if(d.articles){localStorage.setItem('crm_articles',JSON.stringify(d.articles));}
+      renderTable(); applyLogo();
+      alert(`Importerat! ${customers.length} kunder, ${(d.offerts||[]).length} offerter.`);
+    }catch{alert('Ogiltigt filformat.');}
+  };
+  r.readAsText(file);
+}
+function clearAll(){if(!confirm('Är du säker? All kunddata raderas.'))return;customers=[];save();renderTable();}
+
+// Backdrop close
+document.getElementById('customerOverlay').addEventListener('click',function(e){if(e.target===this)closeCustomerModal();});
+document.getElementById('mailOverlay').addEventListener('click',function(e){if(e.target===this)closeMailModal();});
+
+// Init
+applyLogo();
+renderTable();
+</script>
+</body>
+</html>
+</template>
+<template id="tpl-offert"><!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offertsystem</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--bg2:#fff;--bg3:#eeecea;
+  --text:#1a1a18;--text2:#6b6a66;--text3:#9e9d99;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --navy:#1a3a5c;--navy2:#0f2640;--navy-light:#e8eef5;
+  --green:#2d6a11;--green-light:#e8f3de;
+  --amber:#7a4a0a;--amber-light:#faeeda;
+  --red:#9a2828;--red-light:#fceaea;
+  --r:8px;--rl:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--navy);display:flex;flex-direction:column;padding:0;flex-shrink:0}
+.sidebar-header{padding:1.25rem 1.25rem 0}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.logo-img{width:36px;height:36px;border-radius:var(--r);overflow:hidden;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-img img{width:100%;height:100%;object-fit:contain}
+.logo-text{font-size:15px;font-weight:600;color:white}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px}
+.nav{padding:0 0.75rem;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;padding:1rem 0.5rem 0.4rem;margin-top:0.5rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r);cursor:pointer;color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:2px;transition:all 0.15s}
+.nav-item:hover{background:rgba(255,255,255,0.1);color:white}
+.nav-item.active{background:rgba(255,255,255,0.15);color:white;font-weight:500}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,0.1);margin-top:auto}
+.sidebar-footer a{display:block;color:rgba(255,255,255,0.6);font-size:12px;text-decoration:none;padding:5px 0;transition:color 0.15s}
+.sidebar-footer a:hover{color:white}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.topbar{padding:0.9rem 1.5rem;background:var(--bg2);border-bottom:0.5px solid var(--border2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text);margin-right:auto}
+.content{padding:1.5rem;flex:1}
+
+/* BUTTONS */
+.btn{padding:7px 15px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--bg3)}
+.btn-primary{background:var(--navy);color:white;border-color:var(--navy)}
+.btn-primary:hover{background:var(--navy2)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-danger{color:var(--red);border-color:#f09595}
+.btn-danger:hover{background:var(--red-light)}
+.btn-ghost{border:none;background:none;padding:4px 8px}
+.btn-ghost:hover{background:var(--bg3)}
+
+/* TABLE */
+.table-card{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:0.5px solid var(--border);background:var(--bg3);text-transform:uppercase;letter-spacing:0.04em}
+td{padding:10px 14px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#fafaf8;cursor:pointer}
+
+/* FORM */
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color 0.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,58,92,0.08)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.form-full{grid-column:1/-1}
+
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);width:100%;max-width:780px;padding:1.75rem;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-header h2{font-size:16px;font-weight:600}
+.close-btn{width:28px;height:28px;border-radius:50%;border:0.5px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:16px;transition:all 0.15s;flex-shrink:0}
+.close-btn:hover{background:var(--bg3)}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.section-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin:1.25rem 0 0.75rem;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-navy{background:var(--navy-light);color:var(--navy)}
+.badge-gray{background:#f1efe8;color:#5f5e5a}
+
+/* OFFER BUILDER */
+.offer-section{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);margin-bottom:1rem;box-shadow:var(--shadow);overflow:hidden}
+.offer-section-header{padding:12px 16px;background:var(--bg3);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.offer-section-header h4{font-size:13px;font-weight:600;color:var(--text)}
+.offer-section-body{padding:1rem}
+.article-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border)}
+.article-row:last-child{border-bottom:none}
+.article-check{width:16px;height:16px;cursor:pointer;flex-shrink:0}
+.article-name{flex:1;font-size:13px;color:var(--text)}
+.article-price{font-size:13px;color:var(--text2);white-space:nowrap;min-width:100px;text-align:right}
+.article-work{font-size:11px;color:var(--text3);white-space:nowrap;min-width:90px;text-align:right}
+
+/* SUMMARY BOX */
+.summary-box{background:var(--navy);color:white;border-radius:var(--rl);padding:1.5rem;margin-top:1rem;box-shadow:var(--shadow)}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;color:rgba(255,255,255,0.8)}
+.summary-row.total{font-size:16px;font-weight:700;color:white;border-top:1px solid rgba(255,255,255,0.2);margin-top:6px;padding-top:12px}
+.summary-row.rot{font-size:14px;font-weight:600;color:#7dd3b0;border-top:1px solid rgba(255,255,255,0.15);margin-top:4px;padding-top:8px}
+.summary-val{font-weight:600;color:white}
+
+/* ROT SELECTOR */
+.rot-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-top:1rem;box-shadow:var(--shadow)}
+.rot-box h4{font-size:13px;font-weight:600;margin-bottom:1rem}
+.rot-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+.rot-opt{padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--border2);cursor:pointer;font-size:13px;background:var(--bg2);transition:all 0.15s;font-family:inherit}
+.rot-opt:hover{background:var(--bg3)}
+.rot-opt.active{background:var(--navy);color:white;border-color:var(--navy)}
+.rot-custom{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rot-custom input{max-width:160px;padding:7px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;outline:none}
+.rot-custom input:focus{border-color:var(--navy)}
+
+/* PRINT */
+@media print{
+  .app,.sidebar,.topbar,.no-print{display:none!important}
+  body{background:white;font-size:12px}
+  .print-view{display:block!important}
+}
+.print-view{display:none}
+
+/* ADMIN PAGE */
+.admin-cat{background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);margin-bottom:1rem;overflow:hidden;box-shadow:var(--shadow)}
+.admin-cat-header{padding:12px 16px;background:var(--bg3);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.admin-cat-header h4{font-size:13px;font-weight:600}
+.admin-article-row{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:0.5px solid var(--border)}
+.admin-article-row:last-child{border-bottom:none}
+.admin-article-row input{padding:5px 8px;border:0.5px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;outline:none}
+.admin-article-row input:focus{border-color:var(--navy)}
+.admin-article-name{flex:2}
+.admin-article-price{width:110px}
+.admin-article-work-pct{width:80px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-img" id="sidebarLogo">🏠</div>
+      <div>
+        <div class="logo-text" id="sidebarCompany">Offert</div>
+        <div class="logo-sub">Offertsystem</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Offerter</div>
+    <div class="nav-item active" onclick="showPage('list')" id="nav-list">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 10h4"/></svg>
+      Alla offerter
+    </div>
+    <div class="nav-item" onclick="showPage('new')" id="nav-new">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+      Ny offert
+    </div>
+    <div class="nav-section">Backend</div>
+    <div class="nav-item" onclick="showPage('admin')" id="nav-admin">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Hantera artiklar
+    </div>
+    <div class="nav-item" onclick="showPage('imgsettings')" id="nav-imgsettings">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1.2"/><path d="M2 11l4-3 3 2 2-1.5 3 2.5"/></svg>
+      Bilder & design
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div id="sync-status" style="font-size:11px;color:#7dd3b0;padding:4px 0;transition:opacity 1s">☁ Ansluter...</div>
+    <a href="#" onclick="parent.loadApp('crm');return false;">👥 CRM / Kunder</a>
+    <a href="#" onclick="exportAll()">⬇ Exportera backup</a>
+    <a href="#" onclick="document.getElementById('importFileOffert').click()">⬆ Importera data</a>
+    <input type="file" id="importFileOffert" accept=".json" style="display:none" onchange="importAllData(event)">
+    <a href="#" onclick="parent.manualPull()" style="color:#a0c4e8">🔄 Hämta senaste från moln</a>
+    <a href="#" onclick="parent.saveAsHTML()" style="color:#7dd3b0;font-weight:600">💾 Spara som ny HTML-fil</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LIST PAGE -->
+  <div id="page-list">
+    <div class="topbar">
+      <span class="topbar-title">Offerter</span>
+      <button class="btn btn-primary" onclick="showPage('new');resetBuilder()">+ Ny offert</button>
+    </div>
+    <div class="content">
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Kund</th><th>Projekt</th><th>Datum</th><th>Totalt inkl moms</th><th>Efter ROT</th><th>Status</th><th></th></tr></thead>
+          <tbody id="offert-list-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW/EDIT OFFER PAGE -->
+  <div id="page-new" style="display:none">
+    <div class="topbar">
+      <span class="topbar-title" id="builder-title">Ny offert</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="showPage('list')">← Tillbaka</button>
+        <button class="btn" onclick="printOffer()">🖨 Utskrift / PDF</button>
+        <button class="btn btn-primary" onclick="saveOffer()">Spara offert</button>
+      </div>
+    </div>
+    <div class="content" style="display:grid;grid-template-columns:1fr 340px;gap:1.25rem;align-items:start">
+
+      <!-- LEFT: builder -->
+      <div>
+        <!-- Customer info -->
+        <div class="offer-section">
+          <div class="offer-section-header" onclick="toggleSection('sec-customer')">
+            <h4>📋 Kundinformation</h4>
+            <svg id="sec-customer-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+          </div>
+          <div id="sec-customer" class="offer-section-body">
+            <div class="form-grid" style="gap:10px">
+              <div class="form-group"><label>Kund / Beställare</label><input id="b-customer" type="text" placeholder="Namn" list="customer-list"></div>
+              <div class="form-group"><label>Telefon</label><input id="b-telefon" type="text"></div>
+              <div class="form-group form-full"><label>Adress till projektet</label><input id="b-adress" type="text"></div>
+              <div class="form-group"><label>Mail</label><input id="b-mail" type="text"></div>
+              <div class="form-group"><label>Byggstart vecka</label><input id="b-vecka" type="text"></div>
+              <div class="form-group"><label>Offertdatum</label><input id="b-datum" type="date"></div>
+              <div class="form-group"><label>Offertens giltighetstid</label><input id="b-giltighet" type="text" value="30 dagar"></div>
+            </div>
+          </div>
+        </div>
+        <datalist id="customer-list"></datalist>
+
+        <!-- Rooms -->
+        <div id="rooms-container"></div>
+        <div style="display:flex;gap:8px;margin-bottom:1rem">
+          <button class="btn" onclick="addRoom()" style="flex:1;justify-content:center">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+            Lägg till rum / utrymme
+          </button>
+          <select id="room-template-select" style="padding:7px 10px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:13px;outline:none;cursor:pointer" onchange="addRoomFromTemplate(this.value);this.value=''">
+            <option value="">+ Från mall...</option>
+          </select>
+        </div>
+
+        <!-- ROT -->
+        <div class="rot-box no-print">
+          <h4>ROT-avdrag</h4>
+          <div class="rot-options">
+            <button class="rot-opt active" onclick="setRotMode('1person')" id="rot-1">1 person (max 50 000 kr)</button>
+            <button class="rot-opt" onclick="setRotMode('2person')" id="rot-2">2 personer (max 100 000 kr)</button>
+            <button class="rot-opt" onclick="setRotMode('custom')" id="rot-custom-btn">Eget belopp</button>
+            <button class="rot-opt" onclick="setRotMode('ingen')" id="rot-ingen">Ingen ROT</button>
+          </div>
+          <div class="rot-custom" id="rot-custom-row" style="display:none">
+            <label style="font-size:12px;color:var(--text2);white-space:nowrap">Kvarvarande ROT:</label>
+            <input type="number" id="rot-custom-val" placeholder="Ex: 35000" oninput="calcSummary()">
+            <span style="font-size:12px;color:var(--text2)">kr</span>
+          </div>
+        </div>
+
+        <!-- Campaign -->
+        <div class="offer-section" style="margin-top:1rem">
+          <div class="offer-section-header" onclick="toggleSection('sec-campaign')">
+            <h4>🎯 Kampanj (visas i offerten)</h4>
+            <svg id="sec-campaign-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+          </div>
+          <div id="sec-campaign" class="offer-section-body">
+            <textarea id="b-campaign" rows="3" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;outline:none" placeholder="Ex: Just nu: 10% rabatt på plattsättning! Gäller t.o.m. 2026-06-30."></textarea>
+          </div>
+        </div>
+
+        <!-- Extra tillval under totalrutan -->
+        <div class="offer-section" style="margin-top:1rem">
+          <div class="offer-section-header" onclick="toggleSection('sec-extras')">
+            <h4>➕ Extra tillval (visas under totalen i offerten)</h4>
+            <svg id="sec-extras-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+          </div>
+          <div id="sec-extras" class="offer-section-body">
+            <div id="extra-tillval-rows"></div>
+            <button class="btn btn-sm" onclick="addExtraTillval()">+ Lägg till rad</button>
+          </div>
+        </div>
+
+        <!-- Extra notes (internal) -->
+        <div class="offer-section" style="margin-top:1rem">
+          <div class="offer-section-header" onclick="toggleSection('sec-notes')">
+            <h4>📝 Interna anteckningar (syns ej i offerten)</h4>
+            <svg id="sec-notes-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+          </div>
+          <div id="sec-notes" class="offer-section-body">
+            <textarea id="b-notes" rows="4" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;outline:none" placeholder="Interna noteringar, påminnelser (visas ej i utskrift)..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: summary -->
+      <div style="position:sticky;top:1rem">
+        <div class="summary-box">
+          <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Sammanställning</div>
+          <div class="summary-row"><span>Arbetskostnad exkl moms</span><span class="summary-val" id="s-work-ex">0 kr</span></div>
+          <div class="summary-row"><span>Materialkostnad exkl moms</span><span class="summary-val" id="s-mat-ex">0 kr</span></div>
+          <div class="summary-row"><span>Moms (25%)</span><span class="summary-val" id="s-moms">0 kr</span></div>
+          <div class="summary-row total"><span>Totalt inkl moms</span><span id="s-total">0 kr</span></div>
+          <div style="height:1px;background:rgba(255,255,255,0.1);margin:10px 0"></div>
+          <div class="summary-row" style="font-size:12px"><span>Arbetskostnad (ROT-underlag)</span><span class="summary-val" id="s-work-incl">0 kr</span></div>
+          <div class="summary-row" style="font-size:12px"><span>Max ROT 30% av arbete</span><span class="summary-val" id="s-max-rot">0 kr</span></div>
+          <div class="summary-row" style="font-size:12px"><span>Beräknat ROT-avdrag</span><span class="summary-val" id="s-rot-used">0 kr</span></div>
+          <div class="summary-row rot"><span>💰 Pris efter ROT</span><span id="s-after-rot">0 kr</span></div>
+          <div class="summary-row" style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px"><span>varav material inkl moms</span><span id="s-mat-incl" style="color:rgba(255,255,255,0.65)">0 kr</span></div>
+        </div>
+
+        <div style="background:var(--bg2);border-radius:var(--rl);border:0.5px solid var(--border);padding:1rem;margin-top:10px;box-shadow:var(--shadow)">
+          <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Offert status</div>
+          <select id="b-status" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;outline:none">
+            <option>Skickad</option><option>Pågående</option><option>Signerad</option><option>Tackat nej</option>
+          </select>
+          <div style="margin-top:10px;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Internt offert-nr</div>
+          <input id="b-offert-nr" type="text" placeholder="Ex: 2026-001" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;outline:none">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div id="page-admin" style="display:none">
+    <div class="topbar">
+      <span class="topbar-title">Hantera artiklar</span>
+      <button class="btn btn-primary" onclick="saveArticles()">Spara ändringar</button>
+    </div>
+    <div class="content" id="admin-content" style="max-width:900px"></div>
+  </div>
+
+
+  <!-- IMAGE SETTINGS PAGE -->
+  <div id="page-imgsettings" style="display:none">
+    <div class="topbar">
+      <span class="topbar-title">Bilder & design</span>
+      <button class="btn btn-primary" onclick="saveImgSettings()">Spara</button>
+    </div>
+    <div class="content" style="max-width:700px">
+
+      <div class="admin-cat" style="margin-bottom:1rem">
+        <div class="admin-cat-header"><h4>Header-bild (visas överst i offerten)</h4></div>
+        <div style="padding:1.25rem">
+          <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+            <div id="header-img-preview" style="width:280px;height:100px;border-radius:var(--r);border:0.5px dashed var(--border2);overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3)">Ingen bild vald</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:6px">Ladda upp header-bild</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Rekommenderad storlek: 1200×300 px. Visas som bred banner i offerten.</div>
+              <button class="btn btn-sm" onclick="document.getElementById('headerImgInput').click()">Välj bild</button>
+              <button class="btn btn-sm btn-danger" style="margin-left:6px" onclick="removeHeaderImg()">Ta bort</button>
+            </div>
+          </div>
+          <input type="file" id="headerImgInput" accept="image/*" style="display:none" onchange="handleHeaderImg(event)">
+        </div>
+      </div>
+
+      <div class="admin-cat" style="margin-bottom:1rem">
+        <div class="admin-cat-header"><h4>Kvalitetsloggor (BKR, Säker Vatten, Elsäkerhet etc.)</h4></div>
+        <div style="padding:1.25rem">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:1rem">Ladda upp upp till 6 kvalitetsloggor. Visas som en rad i offertens sidfot.</div>
+          <div id="quality-logos-grid" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem"></div>
+          <button class="btn btn-sm" onclick="document.getElementById('qualityLogoInput').click()">+ Lägg till logo</button>
+          <input type="file" id="qualityLogoInput" accept="image/*" style="display:none" onchange="handleQualityLogo(event)">
+          <div style="margin-top:1rem;display:flex;align-items:center;gap:10px">
+            <label style="font-size:12px;color:var(--text2);white-space:nowrap">Höjd i sidfoten:</label>
+            <select id="logoSizePicker" style="padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:13px;outline:none" onchange="saveLogoSize(this.value)">
+              <option value="24">Liten (24px)</option>
+              <option value="32" selected>Normal (32px)</option>
+              <option value="44">Stor (44px)</option>
+              <option value="56">Extra stor (56px)</option>
+            </select>
+            <span style="font-size:12px;color:var(--text3)">Påverkar hur logorna visas i offertens sidfot</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-cat" style="margin-bottom:1rem">
+        <div class="admin-cat-header"><h4>Certifikat & länklista (visas i offerten)</h4></div>
+        <div style="padding:1.25rem">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:1rem">Lägg till länkar till certifikat, hemsida eller andra dokument. Visas som klickbar länklista i offertens sidfot.</div>
+          <div id="cert-links-list"></div>
+          <button class="btn btn-sm" onclick="addCertLink()">+ Lägg till länk</button>
+        </div>
+      </div>
+
+      <div class="admin-cat">
+        <div class="admin-cat-header"><h4>Accentfärg</h4></div>
+        <div style="padding:1.25rem;display:flex;align-items:center;gap:1rem">
+          <input type="color" id="accentColorPicker" value="#1a3a5c" style="width:50px;height:36px;border:0.5px solid var(--border2);border-radius:var(--r);cursor:pointer">
+          <div>
+            <div style="font-size:13px;font-weight:500">Offertens accentfärg</div>
+            <div style="font-size:12px;color:var(--text2)">Används i rubriker, totalruta och accenter</div>
+          </div>
+          <button class="btn btn-sm" onclick="document.getElementById('accentColorPicker').value='#1a3a5c'">Återställ marinblå</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- PRINT VIEW -->
+<div class="print-view" id="print-view"></div>
+
+<script>
+// ── STORAGE KEYS ──────────────────────────────────────────────
+const KEY_OFFERTS   = 'crm_offerts';
+const KEY_ARTICLES  = 'crm_articles';
+const KEY_SETTINGS  = 'crm_settings';
+
+let settings  = JSON.parse(localStorage.getItem(KEY_SETTINGS)||'{}');
+let offerts   = JSON.parse(localStorage.getItem(KEY_OFFERTS)||'[]');
+let articles  = JSON.parse(localStorage.getItem(KEY_ARTICLES)||'null') || defaultArticles();
+
+// ── CURRENT BUILDER STATE ─────────────────────────────────────
+let editingOffertId = null;
+let rooms = []; // [{id, type, size, version, extras:[], freeRows:[]}]
+let rotMode = '1person';
+
+// ── HELPERS ───────────────────────────────────────────────────
+function fmt(n){return Math.round(n).toLocaleString('sv-SE');}
+function today(){return new Date().toISOString().slice(0,10);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function saveOfferts(){localStorage.setItem(KEY_OFFERTS,JSON.stringify(offerts));}
+function saveArticlesData(){localStorage.setItem(KEY_ARTICLES,JSON.stringify(articles));}
+
+// ── DEFAULT ARTICLES ──────────────────────────────────────────
+function defaultArticles(){
+  return {
+    badrumUtrymmen:[
+      {id:'br-1',name:'Badrum 1 kvm',baseEx:127800,workPct:85},
+      {id:'br-1.5',name:'Badrum 1,5 kvm',baseEx:127800,workPct:85},
+      {id:'br-2',name:'Badrum 2 kvm',baseEx:132600,workPct:85},
+      {id:'br-2.5',name:'Badrum 2,5 kvm',baseEx:132600,workPct:85},
+      {id:'br-3',name:'Badrum 3 kvm',baseEx:132600,workPct:85},
+      {id:'br-3.5',name:'Badrum 3,5 kvm',baseEx:140160,workPct:85},
+      {id:'br-4',name:'Badrum 4 kvm',baseEx:140160,workPct:85},
+      {id:'br-4.5',name:'Badrum 4,5 kvm',baseEx:140160,workPct:85},
+      {id:'br-5',name:'Badrum 5 kvm',baseEx:140160,workPct:85},
+      {id:'br-5.5',name:'Badrum 5,5 kvm',baseEx:142660,workPct:85},
+      {id:'br-6',name:'Badrum 6 kvm',baseEx:145000,workPct:85},
+      {id:'br-7',name:'Badrum 7 kvm',baseEx:160000,workPct:85},
+      {id:'br-8',name:'Badrum 8 kvm',baseEx:180000,workPct:85},
+      {id:'br-9',name:'Badrum 9 kvm',baseEx:200000,workPct:85},
+      {id:'br-10',name:'Badrum 10 kvm',baseEx:220000,workPct:85},
+      {id:'br-12',name:'Badrum 12 kvm',baseEx:260000,workPct:85},
+      {id:'br-15',name:'Badrum 15 kvm',baseEx:320000,workPct:85},
+    ],
+    badrumVersioner:[
+      {id:'bv-1',name:'Version V1',baseEx:15000,workPct:85},
+      {id:'bv-2',name:'Version V2',baseEx:26000,workPct:85},
+      {id:'bv-3',name:'Version V3',baseEx:37000,workPct:85},
+      {id:'bv-4',name:'Version V4',baseEx:48000,workPct:85},
+      {id:'bv-5',name:'Version V5',baseEx:59000,workPct:85},
+      {id:'bv-6',name:'Version V6',baseEx:70000,workPct:85},
+      {id:'bv-7',name:'Version V7',baseEx:81000,workPct:85},
+      {id:'bv-8',name:'Version V8',baseEx:92000,workPct:85},
+    ],
+    tvattugaUtrymmen:[
+      {id:'ts-2',name:'Tvättstuga 2 kvm',baseEx:132600,workPct:85},
+      {id:'ts-4',name:'Tvättstuga 4 kvm',baseEx:132600,workPct:85},
+      {id:'ts-6',name:'Tvättstuga 6 kvm',baseEx:132600,workPct:85},
+      {id:'ts-8',name:'Tvättstuga 8 kvm',baseEx:142660,workPct:85},
+      {id:'ts-10',name:'Tvättstuga 10 kvm',baseEx:142660,workPct:85},
+      {id:'ts-12',name:'Tvättstuga 12 kvm',baseEx:142660,workPct:85},
+    ],
+    tvattugaVersioner:[
+      {id:'tv-1',name:'Version V1',baseEx:11000,workPct:85},
+      {id:'tv-2',name:'Version V2',baseEx:22000,workPct:85},
+      {id:'tv-3',name:'Version V3',baseEx:33000,workPct:85},
+      {id:'tv-4',name:'Version V4',baseEx:44000,workPct:85},
+    ],
+    wcUtrymmen:[
+      {id:'wc-1',name:'WC 1 kvm',baseEx:92800,workPct:85},
+      {id:'wc-2',name:'WC 2 kvm',baseEx:92800,workPct:85},
+      {id:'wc-3',name:'WC 3 kvm',baseEx:92800,workPct:85},
+    ],
+    wcVersioner:[
+      {id:'wv-1',name:'Version V1',baseEx:5500,workPct:85},
+      {id:'wv-2',name:'Version V2',baseEx:11000,workPct:85},
+      {id:'wv-3',name:'Version V3',baseEx:16500,workPct:85},
+      {id:'wv-4',name:'Version V4',baseEx:22000,workPct:85},
+    ],
+    forberedelser:[
+      {id:'f-1',name:'Kund river allt själv (avdrag)',baseEx:-4000,workPct:85},
+      {id:'f-2',name:'Rivning av extra vägg (ej bärande)',baseEx:2000,workPct:85},
+      {id:'f-3',name:'Montering karm och dörr',baseEx:2600,workPct:85},
+      {id:'f-4',name:'Montering karm/dörr med ändrat dörrmått',baseEx:3500,workPct:85},
+    ],
+    plattsattning:[
+      {id:'p-1',name:'Kakel vägg extra – plattor <15mm (stavar, metro etc)',baseEx:4000,workPct:85},
+      {id:'p-2',name:'Granitkeramik vägg 15×15–30×60',baseEx:10000,workPct:85},
+      {id:'p-3',name:'Granitkeramik vägg 15×15–60×60',baseEx:15000,workPct:85},
+      {id:'p-4',name:'Klinker golv 10×10–30×30',baseEx:1000,workPct:85},
+      {id:'p-5',name:'Klinker golv 10×10–30×60 (per kvm +550)',baseEx:3000,workPct:85},
+      {id:'p-6',name:'Klinker golv 10×10–60×60 (per kvm +550)',baseEx:4000,workPct:85},
+      {id:'p-7',name:'Klinker golv hexagon 10×10–20×22',baseEx:5000,workPct:85},
+      {id:'p-8',name:'Kakelbård ovan halvkakling (550 kr/m)',baseEx:4000,workPct:85},
+      {id:'p-9',name:'Inkakling av badkar',baseEx:9000,workPct:85},
+      {id:'p-10',name:'Uppbyggnad + plattsättning 1 nisch',baseEx:5000,workPct:85},
+      {id:'p-11',name:'Uppbyggnad + plattsättning 2 nischer',baseEx:9200,workPct:85},
+      {id:'p-12',name:'Uppbyggnad + plattsättning 3 nischer',baseEx:13760,workPct:85},
+      {id:'p-13',name:'Plattsättning fönsternisch 1 st',baseEx:1300,workPct:85},
+      {id:'p-14',name:'Plattsättning fönsternisch 2 st',baseEx:2000,workPct:85},
+      {id:'p-15',name:'Sittbänk på golv (kub)',baseEx:2500,workPct:85},
+      {id:'p-16',name:'Spegel som kaklas in',baseEx:2000,workPct:85},
+      {id:'p-17',name:'Montage glasbetongvägg',baseEx:6000,workPct:85},
+    ],
+    vvs:[
+      {id:'v-1',name:'Flytt golvbrunn',baseEx:2000,workPct:85},
+      {id:'v-2',name:'Flytt tvättställsavlopp',baseEx:1500,workPct:85},
+      {id:'v-3',name:'Flytt wc-avlopp',baseEx:2600,workPct:85},
+      {id:'v-4',name:'Flytt tvättmaskinsavlopp',baseEx:1500,workPct:85},
+      {id:'v-5',name:'Byte avloppsgroda betong',baseEx:10000,workPct:85},
+      {id:'v-6',name:'Byte avloppsgroda träbjälklag',baseEx:5000,workPct:85},
+      {id:'v-7',name:'Vattenburen golvvärme (slang+shunt)',baseEx:12000,workPct:85},
+      {id:'v-8',name:'Vattenburen golvvärme med el-patron',baseEx:15000,workPct:85},
+      {id:'v-9',name:'Infällda rör i betongvägg',baseEx:8000,workPct:85},
+      {id:'v-10',name:'Infällda rör i skivad vägg',baseEx:2600,workPct:85},
+      {id:'v-11',name:'Anslutning tvättmaskin',baseEx:4000,workPct:85},
+      {id:'v-12',name:'Inbyggnadsblandare befintlig vägg 1 st',baseEx:3200,workPct:85},
+      {id:'v-13',name:'Inbyggnadsblandare befintlig vägg 2 st',baseEx:4800,workPct:85},
+      {id:'v-14',name:'Inbyggnadsblandare utreglad vägg 1 st',baseEx:6400,workPct:85},
+      {id:'v-15',name:'Inbyggnadsblandare utreglad vägg 2 st',baseEx:8000,workPct:85},
+      {id:'v-16',name:'Dem/mont VVB på samma plats',baseEx:12000,workPct:85},
+      {id:'v-17',name:'Vägghängd wc vid rak vägg',baseEx:5000,workPct:85},
+    ],
+    el:[
+      {id:'e-1',name:'El spotlights upp till 9 st',baseEx:1000,workPct:85},
+      {id:'e-2',name:'El spotlights upp till 12 st',baseEx:2000,workPct:85},
+      {id:'e-3',name:'El handdukstork + montering',baseEx:1000,workPct:85},
+      {id:'e-4',name:'El fläkt + håltagning träfasad',baseEx:1100,workPct:85},
+      {id:'e-5',name:'El fläkt + håltagning putsfasad',baseEx:2700,workPct:85},
+      {id:'e-6',name:'El bubbelbadkar + installation',baseEx:5000,workPct:85},
+      {id:'e-7',name:'Flytt strömbrytare',baseEx:1100,workPct:85},
+      {id:'e-8',name:'Jordfelsbrytare',baseEx:2100,workPct:85},
+      {id:'e-9',name:'Spotlight i nisch 1 st',baseEx:1950,workPct:85},
+      {id:'e-10',name:'Spotlight i nisch 2 st',baseEx:2500,workPct:85},
+    ],
+    snickerier:[
+      {id:'s-1',name:'Träpanel i tak inkl regling',baseEx:5000,workPct:85},
+      {id:'s-2',name:'Låda vid rör',baseEx:2500,workPct:85},
+      {id:'s-3',name:'Bänkskiva ovan tvättmaskin',baseEx:1000,workPct:85},
+      {id:'s-4',name:'Montering skåp med täcksida',baseEx:2500,workPct:85},
+    ],
+    dolda:[
+      {id:'d-1',name:'Taxeavgift 1 (hiss saknas, 3+ trappor)',baseEx:4000,workPct:85},
+      {id:'d-2',name:'Taxeavgift 2 (parkering taxa 2)',baseEx:3800,workPct:85},
+      {id:'d-3',name:'Taxeavgift 3 (parkering taxa 3)',baseEx:1800,workPct:85},
+      {id:'d-4',name:'Deponi tvättmaskin',baseEx:2000,workPct:85},
+      {id:'d-5',name:'Mer än 2 ytterhörn',baseEx:4000,workPct:85},
+      {id:'d-6',name:'Lång körsträcka (Södertälje etc)',baseEx:8000,workPct:85},
+    ],
+  };
+}
+
+// ── CATEGORY LABELS ───────────────────────────────────────────
+const catLabels = {
+  forberedelser:'Förberedelser',
+  plattsattning:'Plattsättning & Kakel',
+  vvs:'VVS Rörinstallationer',
+  el:'Elinstallationer',
+  snickerier:'Snickerier',
+  dolda:'Dolda tillval & Taxor',
+};
+const extraCats = ['forberedelser','plattsattning','vvs','el','snickerier','dolda'];
+
+// ── PAGES ─────────────────────────────────────────────────────
+function showPage(p){
+  ['list','new','admin','imgsettings'].forEach(id=>{
+    document.getElementById(`page-${id}`).style.display=id===p?'':'none';
+    const n=document.getElementById(`nav-${id}`);
+    if(n)n.classList.toggle('active',id===p);
+  });
+  if(p==='list')renderOffertList();
+  if(p==='admin')renderAdmin();
+  if(p==='imgsettings')renderImgSettings();
+  if(p==='new')populateCustomerList();
+}
+function toggleSection(id){
+  const el=document.getElementById(id);
+  const arr=document.getElementById(id+'-arrow');
+  const hidden=el.style.display==='none';
+  el.style.display=hidden?'':'none';
+  if(arr)arr.style.transform=hidden?'':'rotate(-90deg)';
+}
+
+// ── OFFER LIST ────────────────────────────────────────────────
+function renderOffertList(){
+  const tbody=document.getElementById('offert-list-body');
+  if(!offerts.length){tbody.innerHTML='<tr><td colspan="7"><div style="text-align:center;padding:2rem;color:var(--text2)">Inga offerter ännu. Skapa din första!</div></td></tr>';return;}
+  const sorted=[...offerts].sort((a,b)=>b.datum.localeCompare(a.datum));
+  tbody.innerHTML=sorted.map(o=>{
+    const statusColors={'Signerad':'badge-green','Pågående':'badge-amber','Skickad':'badge-navy','Tackat nej':'badge-gray'};
+    return`<tr onclick="editOffer('${o.id}')">
+      <td><strong>${o.customerName||'—'}</strong></td>
+      <td>${o.rooms?.map(r=>r.type).join(', ')||'—'}</td>
+      <td>${o.datum||'—'}</td>
+      <td><strong>${fmt(o.totalInclMoms)} kr</strong></td>
+      <td style="color:var(--green)">${fmt(o.afterRot)} kr</td>
+      <td><span class="badge ${statusColors[o.status]||'badge-gray'}">${o.status||'—'}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteOffer('${o.id}')">Ta bort</button></td>
+    </tr>`;
+  }).join('');
+}
+function deleteOffer(id){
+  if(!confirm('Ta bort offerten?'))return;
+  offerts=offerts.filter(o=>o.id!==id);
+  saveOfferts();renderOffertList();
+}
+function editOffer(id){
+  const o=offerts.find(x=>x.id===id);
+  if(!o)return;
+  editingOffertId=id;
+  showPage('new');
+  document.getElementById('builder-title').textContent='Redigera offert';
+  document.getElementById('b-customer').value=o.customerName||'';
+  document.getElementById('b-telefon').value=o.telefon||'';
+  document.getElementById('b-adress').value=o.adress||'';
+  document.getElementById('b-mail').value=o.mail||'';
+  document.getElementById('b-vecka').value=o.vecka||'';
+  document.getElementById('b-datum').value=o.datum||'';
+  document.getElementById('b-giltighet').value=o.giltighet||'30 dagar';
+  document.getElementById('b-notes').value=o.notes||'';
+  document.getElementById('b-campaign').value=o.campaign||'';
+  // restore extra tillval
+  extraTillvalData=o.extraTillval||[];
+  renderExtraTillval();
+  document.getElementById('b-status').value=o.status||'Skickad';
+  document.getElementById('b-offert-nr').value=o.offertNr||'';
+  rooms=o.rooms||[];
+  rotMode=o.rotMode||'1person';
+  setRotMode(rotMode,false);
+  if(rotMode==='custom'&&o.rotCustomVal){document.getElementById('rot-custom-val').value=o.rotCustomVal;}
+  renderRooms();
+  calcSummary();
+}
+function resetBuilder(){
+  editingOffertId=null;
+  document.getElementById('builder-title').textContent='Ny offert';
+  document.getElementById('b-customer').value='';
+  document.getElementById('b-telefon').value='';
+  document.getElementById('b-adress').value='';
+  document.getElementById('b-mail').value='';
+  document.getElementById('b-vecka').value='';
+  document.getElementById('b-datum').value=today();
+  document.getElementById('b-giltighet').value='30 dagar';
+  document.getElementById('b-notes').value='';
+  document.getElementById('b-campaign').value='';
+  extraTillvalData=[];
+  renderExtraTillval();
+  linkedCustomerId='';
+  document.getElementById('b-status').value='Skickad';
+  document.getElementById('b-offert-nr').value='';
+  rooms=[];rotMode='1person';
+  setRotMode('1person',false);
+  renderRooms();calcSummary();
+}
+
+// ── ROOM BUILDER ──────────────────────────────────────────────
+function addRoom(){
+  const room={id:uid(),type:'Badrum',sizeId:'br-4.5',versionId:'bv-1',extras:{},freeRows:[]};
+  rooms.push(room);renderRooms();calcSummary();
+}
+function removeRoom(roomId){
+  rooms=rooms.filter(r=>r.id!==roomId);renderRooms();calcSummary();
+}
+function renderRooms(){
+  const container=document.getElementById('rooms-container');
+  container.innerHTML=rooms.map((room,idx)=>buildRoomHTML(room,idx)).join('');
+}
+function buildRoomHTML(room,idx){
+  const typeOpts=['Badrum','Tvättstuga','WC'].map(t=>`<option ${room.type===t?'selected':''}>${t}</option>`).join('');
+  const sizeList=getSizeList(room.type);
+  const versionList=getVersionList(room.type);
+  const sizeArt=sizeList.find(a=>a.id===room.sizeId)||{name:'',baseEx:0,workPct:85};
+  const verArt=versionList.find(a=>a.id===room.versionId)||{name:'',baseEx:0,workPct:85};
+  const sizeOpts=sizeList.map(a=>`<option value="${a.id}" ${room.sizeId===a.id?'selected':''}>${a.name}</option>`).join('');
+  const verOpts=versionList.map(a=>`<option value="${a.id}" ${room.versionId===a.id?'selected':''}>${a.name} (+${fmt(a.baseEx*1.25)} kr)</option>`).join('');
+
+  let extrasHTML='';
+  extraCats.forEach(cat=>{
+    const catArticles=articles[cat]||[];
+    if(!catArticles.length)return;
+    extrasHTML+=`<div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid var(--border)">${catLabels[cat]}</div>
+      ${catArticles.map(a=>`
+        <div class="article-row">
+          <input type="checkbox" class="article-check" ${room.extras[a.id]?'checked':''}
+            onchange="toggleExtra('${room.id}','${a.id}',this.checked)">
+          <span class="article-name">${a.name}</span>
+          <span class="article-work" title="Varav arbete">${fmt(a.baseEx*a.workPct/100*1.25)} kr arb</span>
+          <span class="article-price">${fmt(a.baseEx*1.25)} kr</span>
+        </div>`).join('')}
+    </div>`;
+  });
+
+  const freeRowsHTML=room.freeRows.map((fr,fi)=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+      <input type="text" placeholder="Beskrivning" value="${fr.name||''}"
+        oninput="updateFreeRow('${room.id}',${fi},'name',this.value)"
+        style="flex:1;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <input type="number" placeholder="Pris inkl moms" value="${fr.priceIncl||''}"
+        oninput="updateFreeRow('${room.id}',${fi},'priceIncl',parseFloat(this.value)||0)"
+        style="width:140px;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <span style="font-size:12px;color:var(--text2)">kr (inkl)</span>
+      <input type="number" placeholder="% arbete" value="${fr.workPct??85}"
+        oninput="updateFreeRow('${room.id}',${fi},'workPct',parseFloat(this.value)||85)"
+        style="width:80px;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <span style="font-size:12px;color:var(--text2)">% arb</span>
+      <button class="btn btn-sm btn-danger" onclick="removeFreeRow('${room.id}',${fi})">✕</button>
+    </div>`).join('');
+
+  return`<div class="offer-section" id="room-${room.id}">
+    <div class="offer-section-header" onclick="toggleSection('room-body-${room.id}')">
+      <h4>🚿 Rum ${idx+1}: ${room.type}${verArt.name?' '+verArt.name.replace('Version ',''):''} <span style="font-size:11px;color:rgba(255,255,255,0.55)">${sizeList.find(a=>a.id===room.sizeId)?.name?.replace(/Badrum |Tvättstuga |WC /,'')?.replace(' kvm',' kvm')||''}</span></h4>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="room-total-${room.id}" style="font-size:12px;color:var(--text2)"></span>
+        <button class="btn btn-sm no-print" onclick="event.stopPropagation();saveRoomAsTemplate('${room.id}')" title="Spara rum som mall" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white">💾 Mall</button>
+        <button class="btn btn-sm btn-danger no-print" onclick="event.stopPropagation();removeRoom('${room.id}')">Ta bort</button>
+        <svg id="room-body-${room.id}-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+      </div>
+    </div>
+    <div id="room-body-${room.id}" class="offer-section-body">
+      <div class="form-grid-3" style="margin-bottom:1rem">
+        <div class="form-group">
+          <label>Typ</label>
+          <select onchange="updateRoomType('${room.id}',this.value)">${typeOpts}</select>
+        </div>
+        <div class="form-group">
+          <label>Storlek</label>
+          <select onchange="updateRoomField('${room.id}','sizeId',this.value)">${sizeOpts}</select>
+        </div>
+        <div class="form-group">
+          <label>Version</label>
+          <select onchange="updateRoomField('${room.id}','versionId',this.value)">${verOpts}</select>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px">Tillval</div>
+      ${extrasHTML}
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin:12px 0 8px">Fritext-rader (eget pris)</div>
+      ${freeRowsHTML}
+      <button class="btn btn-sm" onclick="addFreeRow('${room.id}')">+ Lägg till fritext-rad</button>
+    </div>
+  </div>`;
+}
+function getSizeList(type){
+  if(type==='Tvättstuga')return articles.tvattugaUtrymmen||[];
+  if(type==='WC')return articles.wcUtrymmen||[];
+  return articles.badrumUtrymmen||[];
+}
+function getVersionList(type){
+  if(type==='Tvättstuga')return articles.tvattugaVersioner||[];
+  if(type==='WC')return articles.wcVersioner||[];
+  return articles.badrumVersioner||[];
+}
+function updateRoomType(roomId,val){
+  const r=rooms.find(x=>x.id===roomId);if(!r)return;
+  r.type=val;
+  const sl=getSizeList(val); const vl=getVersionList(val);
+  r.sizeId=sl[0]?.id||'';r.versionId=vl[0]?.id||'';
+  renderRooms();calcSummary();
+}
+function updateRoomField(roomId,field,val){
+  const r=rooms.find(x=>x.id===roomId);if(!r)return;
+  r[field]=val;calcSummary();
+}
+function toggleExtra(roomId,artId,checked){
+  const r=rooms.find(x=>x.id===roomId);if(!r)return;
+  if(checked)r.extras[artId]=true; else delete r.extras[artId];
+  calcSummary();
+}
+function addFreeRow(roomId){
+  const r=rooms.find(x=>x.id===roomId);if(!r)return;
+  r.freeRows.push({name:'',priceIncl:0,workPct:85});
+  renderRooms();calcSummary();
+}
+function removeFreeRow(roomId,fi){
+  const r=rooms.find(x=>x.id===roomId);if(!r)return;
+  r.freeRows.splice(fi,1);renderRooms();calcSummary();
+}
+function updateFreeRow(roomId,fi,field,val){
+  const r=rooms.find(x=>x.id===roomId);if(!r)return;
+  r.freeRows[fi][field]=val;calcSummary();
+}
+
+// ── CALCULATE SUMMARY ─────────────────────────────────────────
+function calcRoomTotals(){
+  let totalWorkEx=0,totalMatEx=0;
+  rooms.forEach(room=>{
+    const sizeArt=getSizeList(room.type).find(a=>a.id===room.sizeId)||{baseEx:0,workPct:85};
+    const verArt=getVersionList(room.type).find(a=>a.id===room.versionId)||{baseEx:0,workPct:85};
+    let roomWorkEx=(sizeArt.baseEx*(sizeArt.workPct/100))+(verArt.baseEx*(verArt.workPct/100));
+    let roomMatEx=(sizeArt.baseEx*(1-sizeArt.workPct/100))+(verArt.baseEx*(1-verArt.workPct/100));
+    Object.keys(room.extras||{}).forEach(artId=>{
+      const art=findArticle(artId);if(!art)return;
+      roomWorkEx+=art.baseEx*(art.workPct/100);
+      roomMatEx+=art.baseEx*(1-art.workPct/100);
+    });
+    (room.freeRows||[]).forEach(fr=>{
+      const ex=(fr.priceIncl||0)/1.25;
+      roomWorkEx+=ex*(fr.workPct/100);
+      roomMatEx+=ex*(1-(fr.workPct/100));
+    });
+    const roomTotalIncl=(roomWorkEx+roomMatEx)*1.25;
+    const el=document.getElementById(`room-total-${room.id}`);
+    if(el)el.textContent=fmt(roomTotalIncl)+' kr inkl moms';
+    totalWorkEx+=roomWorkEx; totalMatEx+=roomMatEx;
+  });
+  return{totalWorkEx,totalMatEx};
+}
+function findArticle(id){
+  for(const cat of Object.values(articles)){if(Array.isArray(cat)){const a=cat.find(x=>x.id===id);if(a)return a;}}return null;
+}
+function calcSummary(){
+  const{totalWorkEx,totalMatEx}=calcRoomTotals();
+  const totalEx=totalWorkEx+totalMatEx;
+  const moms=totalEx*0.25;
+  const totalIncl=totalEx*1.25;
+  const workIncl=totalWorkEx*1.25;
+  const maxRot=workIncl*0.30;
+
+  let rotUsed=0;
+  if(rotMode==='ingen') rotUsed=0;
+  else if(rotMode==='1person') rotUsed=Math.min(maxRot,50000);
+  else if(rotMode==='2person') rotUsed=Math.min(maxRot,100000);
+  else{const cv=parseFloat(document.getElementById('rot-custom-val')?.value)||0;rotUsed=Math.min(maxRot,cv);}
+
+  const afterRot=totalIncl-rotUsed;
+
+  document.getElementById('s-work-ex').textContent=fmt(totalWorkEx)+' kr';
+  document.getElementById('s-mat-ex').textContent=fmt(totalMatEx)+' kr';
+  document.getElementById('s-moms').textContent=fmt(moms)+' kr';
+  document.getElementById('s-total').textContent=fmt(totalIncl)+' kr';
+  document.getElementById('s-work-incl').textContent=fmt(workIncl)+' kr';
+  document.getElementById('s-max-rot').textContent=fmt(maxRot)+' kr';
+  document.getElementById('s-rot-used').textContent=fmt(rotUsed)+' kr';
+  document.getElementById('s-after-rot').textContent=fmt(afterRot)+' kr';
+  const matInclEl=document.getElementById('s-mat-incl');
+  if(matInclEl)matInclEl.textContent=fmt(totalMatEx*1.25)+' kr';
+  return{totalWorkEx,totalMatEx,totalEx,moms,totalIncl,workIncl,maxRot,rotUsed,afterRot};
+}
+
+// ── ROT MODE ──────────────────────────────────────────────────
+function setRotMode(mode,doCalc=true){
+  rotMode=mode;
+  document.getElementById('rot-1').classList.toggle('active',mode==='1person');
+  document.getElementById('rot-2').classList.toggle('active',mode==='2person');
+  document.getElementById('rot-custom-btn').classList.toggle('active',mode==='custom');
+  document.getElementById('rot-ingen').classList.toggle('active',mode==='ingen');
+  document.getElementById('rot-custom-row').style.display=mode==='custom'?'flex':'none';
+  if(doCalc)calcSummary();
+}
+
+// ── SAVE OFFER ────────────────────────────────────────────────
+function saveOffer(){
+  const{totalWorkEx,totalMatEx,totalIncl,workIncl,rotUsed,afterRot}=calcSummary();
+  const rotCustomVal=rotMode==='custom'?(parseFloat(document.getElementById('rot-custom-val')?.value)||0):null;
+  // collect extra tillval rows
+  const extraTillvalList=[];
+  document.querySelectorAll('.extra-tillval-row').forEach(row=>{
+    const n=row.querySelector('.et-name')?.value||'';
+    const p=parseFloat(row.querySelector('.et-price')?.value)||0;
+    if(n)extraTillvalList.push({name:n,price:p});
+  });
+  const data={
+    id:editingOffertId||uid(),
+    customerName:document.getElementById('b-customer').value,
+    customerId:linkedCustomerId||editingOffertId&&(offerts.find(o=>o.id===editingOffertId)?.customerId)||'',
+    telefon:document.getElementById('b-telefon').value,
+    adress:document.getElementById('b-adress').value,
+    mail:document.getElementById('b-mail').value,
+    vecka:document.getElementById('b-vecka').value,
+    datum:document.getElementById('b-datum').value||today(),
+    giltighet:document.getElementById('b-giltighet').value,
+    notes:document.getElementById('b-notes').value,
+    campaign:document.getElementById('b-campaign').value,
+    extraTillval:extraTillvalList,
+    status:document.getElementById('b-status').value,
+    offertNr:document.getElementById('b-offert-nr').value,
+    rooms:JSON.parse(JSON.stringify(rooms)),
+    rotMode,rotCustomVal,
+    totalWorkInclMoms:Math.round(workIncl),
+    totalMatInclMoms:Math.round((totalMatEx)*1.25),
+    totalInclMoms:Math.round(totalIncl),
+    rotUsed:Math.round(rotUsed),
+    afterRot:Math.round(afterRot),
+  };
+  if(editingOffertId) offerts=offerts.map(o=>o.id===editingOffertId?data:o);
+  else offerts.push(data);
+  saveOfferts();
+  alert('Offert sparad!');
+  showPage('list');
+}
+
+// ── PRINT ─────────────────────────────────────────────────────
+function printOffer(){
+  storeExtraTillvalForPrint();
+  const{totalWorkEx,totalMatEx,totalIncl,workIncl,rotUsed,afterRot,maxRot}=calcSummary();
+  const customer=document.getElementById('b-customer').value;
+  const adress=document.getElementById('b-adress').value;
+  const mail=document.getElementById('b-mail').value;
+  const telefon=document.getElementById('b-telefon').value;
+  const vecka=document.getElementById('b-vecka').value;
+  const datum=document.getElementById('b-datum').value;
+  const giltighet=document.getElementById('b-giltighet').value;
+  const notes=document.getElementById('b-notes').value;
+  const offertNr=document.getElementById('b-offert-nr').value;
+
+  // Collect moment items grouped by category for print
+  // Size/version hidden from customer; individual prices hidden; only delsumma shown
+  let roomsHTML='';
+  rooms.forEach((room,idx)=>{
+    const sizeArt=getSizeList(room.type).find(a=>a.id===room.sizeId)||{name:'',baseEx:0,workPct:85};
+    const verArt=getVersionList(room.type).find(a=>a.id===room.versionId)||{name:'',baseEx:0,workPct:85};
+    // Calc room total (hidden detail)
+    let roomTotalIncl=(sizeArt.baseEx+verArt.baseEx)*1.25;
+    // Build moment list per category (no prices)
+    let catItems={};
+    const printableCats=['forberedelser','plattsattning','vvs','el','snickerier'];
+    printableCats.forEach(cat=>{catItems[cat]=[];});
+    Object.keys(room.extras||{}).forEach(artId=>{
+      const art=findArticle(artId);if(!art)return;
+      // find which cat
+      for(const cat of printableCats){
+        if((articles[cat]||[]).find(a=>a.id===artId)){catItems[cat].push(art.name);break;}
+      }
+      roomTotalIncl+=art.baseEx*1.25;
+    });
+    (room.freeRows||[]).forEach(fr=>{
+      if(fr.name||fr.priceIncl){
+        catItems['forberedelser'].push(fr.name||'Övrigt');
+        roomTotalIncl+=(fr.priceIncl||0);
+      }
+    });
+
+    // Build sections HTML
+    let sectionsHTML='';
+    const printCats=extraCats.filter(c=>c!=='dolda');
+    printCats.forEach(cat=>{
+      const items=catItems[cat];if(!items.length)return;
+      sectionsHTML+=`<div style="margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;border-bottom:1px solid #e0e4ea;padding-bottom:3px">${catLabels[cat]}</div>
+        <ul style="margin-left:14px;font-size:12px;line-height:1.7;color:#333">
+          ${items.map(i=>`<li>${i}</li>`).join('')}
+        </ul>
+      </div>`;
+    });
+
+    roomsHTML+=`
+      <div style="margin-bottom:1.5rem;page-break-inside:avoid">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;border-bottom:2px solid #1a3a5c;margin-bottom:10px">
+          <h3 style="font-size:13px;font-weight:700;color:#1a3a5c">Rum ${idx+1}: ${room.type}${verArt.name?" "+verArt.name.replace("Version ","V"):""}</h3>
+          <span style="font-size:13px;font-weight:700;color:#1a3a5c">${fmt(roomTotalIncl)} kr inkl moms</span>
+        </div>
+        ${sectionsHTML||'<p style="font-size:12px;color:#888">Inga extra moment valda.</p>'}
+      </div>`;
+  });
+
+  const campaign=document.getElementById('b-campaign').value.trim();
+  const campaignHTML=campaign?`<div style="background:#fff8e1;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:0 8px 8px 0;margin-top:16px;font-size:12px;line-height:1.7">
+    <strong style="color:#92400e">🎯 Kampanj</strong><br>${campaign}</div>`:'';
+
+  const extraTillvalArr=JSON.parse(localStorage.getItem('crm_extra_tillval_tmp')||'[]');
+  const extraTillvalHTML=extraTillvalArr.length?`<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:16px;margin-top:16px">
+    <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:8px">Tillval utöver offerten</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      ${extraTillvalArr.map(r=>`<tr><td style="padding:5px 0;border-bottom:0.5px solid #e0eaf5">${r.name}</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e0eaf5;font-weight:600">${r.price?fmt(r.price)+' kr':''}</td></tr>`).join('')}
+    </table>
+  </div>`:'';
+
+  const offerTexts=JSON.parse(localStorage.getItem('crm_offer_texts')||'{}');
+  const defaultTexts=getDefaultOfferTexts();
+
+    const imgSettings=getImgSettings();
+  const accentColor=imgSettings.accentColor||'#1a3a5c';
+  const headerImage=imgSettings.headerImage||'';
+  const qualityLogos=imgSettings.qualityLogos||[];
+
+  const logoHTML=settings.logo?`<img src="${settings.logo}" style="max-height:50px;max-width:160px;object-fit:contain">`:
+    `<div style="font-size:18px;font-weight:800;color:${accentColor}">${settings.company||'Företaget'}</div>`;
+
+  const headerBannerHTML=headerImage
+    ?`<div style="width:100%;height:180px;overflow:hidden;border-radius:10px;margin-bottom:24px;position:relative">
+        <img src="${headerImage}" style="width:100%;height:100%;object-fit:cover">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.45));border-radius:10px"></div>
+        <div style="position:absolute;bottom:20px;left:24px;color:white">
+          <div style="font-size:22px;font-weight:800;letter-spacing:-0.3px">OFFERT</div>
+          ${offertNr?`<div style="font-size:13px;opacity:0.85">Nr: ${offertNr}</div>`:''}
+        </div>
+        <div style="position:absolute;top:16px;right:20px">${logoHTML}</div>
+      </div>`
+    :`<div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:${accentColor};border-radius:10px;margin-bottom:24px">
+        <div>${settings.logo?`<img src="${settings.logo}" style="max-height:44px;max-width:140px;object-fit:contain">`:`<div style="font-size:20px;font-weight:800;color:white">${settings.company||'Företaget'}</div>`}</div>
+        <div style="text-align:right;color:white">
+          <div style="font-size:22px;font-weight:800;letter-spacing:-0.3px">OFFERT</div>
+          ${offertNr?`<div style="font-size:12px;opacity:0.8">Nr: ${offertNr}</div>`:''}
+        </div>
+      </div>`;
+
+  const certLinks=imgSettings.certLinks||[];
+  const certLinksHTML=certLinks.length?`<div style="margin:16px 0;padding:14px 16px;background:#f0f4f9;border-radius:10px">
+    <div style="font-size:10px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Certifikat & dokument</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${certLinks.map(l=>`<a href="${l.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:white;border:1px solid #d0dcea;border-radius:99px;font-size:12px;color:${accentColor};text-decoration:none;font-weight:500">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8"/><path d="M8 2l6 6M10 2h4v4"/></svg>
+        ${l.label||l.url}</a>`).join('')}
+    </div>
+  </div>`:'';
+
+  const qualityLogosHTML=qualityLogos.length
+    ?`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #e8e8e4">
+        <span style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:0.06em">Certifieringar</span>
+        ${qualityLogos.map(src=>`<img src="${src}" style="height:${imgSettings.logoSize||32}px;object-fit:contain;opacity:0.85">`).join('')}
+      </div>`
+    :`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid #e8e8e4">
+        <span style="font-size:10px;background:#e8eef5;color:${accentColor};padding:3px 9px;border-radius:99px;font-weight:600">F-skatt</span>
+        <span style="font-size:10px;background:#e8eef5;color:${accentColor};padding:3px 9px;border-radius:99px;font-weight:600">BKR Våtrumsintyg</span>
+        <span style="font-size:10px;background:#e8eef5;color:${accentColor};padding:3px 9px;border-radius:99px;font-weight:600">Säker Vatten</span>
+        <span style="font-size:10px;background:#e8eef5;color:${accentColor};padding:3px 9px;border-radius:99px;font-weight:600">Elsäkerhetsverket</span>
+      </div>`;
+
+  const html=`<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8">
+  <title>Offert – ${customer}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1a1a18;font-size:13px;background:#f5f4f0}
+    @page{margin:12mm 12mm 16mm 12mm}
+    @media print{.no-print{display:none!important};body{background:white}}
+    .page{max-width:820px;margin:0 auto;padding:24px;background:white;min-height:100vh}
+    h2.section-title{font-size:13px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid ${accentColor}}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+    .info-row{font-size:12px;padding:6px 10px;border-bottom:0.5px solid #ebebeb;display:flex;gap:8px}
+    .info-row:nth-child(odd){background:#f9f8f6}
+    .info-label{font-weight:600;color:#444;min-width:110px}
+    .room-block{margin-bottom:20px;border:1px solid #e8e8e4;border-radius:10px;overflow:hidden;page-break-inside:avoid}
+    .room-header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:${accentColor};color:white}
+    .room-header-title{font-size:13px;font-weight:700}
+    .room-header-price{font-size:14px;font-weight:800}
+    .room-body{padding:14px 16px;background:white}
+    .cat-section{margin-bottom:12px}
+    .cat-label{font-size:10px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #e8eef5}
+    .cat-items{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+    .cat-item{font-size:11px;background:#f0f4f9;color:#333;padding:3px 9px;border-radius:99px;border:0.5px solid #d8e4f0}
+    .totals-wrap{background:${accentColor};border-radius:12px;padding:20px 24px;color:white;margin:20px 0}
+    .totals-title{font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px}
+    .totals-row{display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,0.8);padding:4px 0}
+    .totals-row.main{font-size:17px;font-weight:800;color:white;padding:10px 0 4px;border-top:1px solid rgba(255,255,255,0.2);margin-top:6px}
+    .totals-row.rot{font-size:15px;font-weight:700;color:#7dd3b0;padding:8px 0 0;border-top:1px solid rgba(255,255,255,0.15);margin-top:4px}
+    .rot-note{font-size:10px;color:rgba(255,255,255,0.45);margin-top:8px;font-style:italic}
+    .extra-tillval-box{border:1.5px solid ${accentColor};border-radius:10px;padding:16px;margin:14px 0}
+    .extra-tillval-box h4{font-size:12px;font-weight:700;color:${accentColor};margin-bottom:8px}
+    .extra-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:0.5px solid #eee}
+    .extra-row:last-child{border-bottom:none}
+    .campaign-box{background:linear-gradient(135deg,#fff8e1,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;padding:14px 16px;margin:14px 0;display:flex;gap:10px;align-items:flex-start}
+    .campaign-icon{font-size:20px}
+    .campaign-text{font-size:12px;color:#92400e;line-height:1.6}
+    .text-section{background:#f9f8f6;border-radius:10px;padding:14px 16px;margin-bottom:10px;page-break-inside:avoid}
+    .text-section h3{font-size:12px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}
+    .text-section p{font-size:12px;line-height:1.75;color:#333;white-space:pre-wrap}
+    .included-grid{columns:2;gap:20px;font-size:12px;line-height:1.8;color:#333}
+    .included-grid li{padding:1px 0;list-style:none;padding-left:14px;position:relative}
+    .included-grid li::before{content:"✓";position:absolute;left:0;color:${accentColor};font-weight:700;font-size:11px}
+    .footer-bar{margin-top:28px;padding-top:14px;border-top:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#aaa}
+    .moments-section{margin-bottom:20px}
+    .moments-section h3{font-size:12px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid ${accentColor}}
+  </style></head><body><div class="page">
+
+  ${headerBannerHTML}
+
+  <!-- META ROW -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+    <div>
+      <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px">Datum</div>
+      <div style="font-size:13px;font-weight:600">${datum||today()}</div>
+      <div style="font-size:11px;color:#aaa;margin-top:6px">Giltig: ${giltighet}</div>
+    </div>
+    ${offertNr&&!headerImage?`<div style="background:#f0f4f9;padding:8px 16px;border-radius:8px;font-size:12px"><span style="color:#aaa">Offert nr: </span><strong>${offertNr}</strong></div>`:''}
+  </div>
+
+  <!-- PROJECT INFO -->
+  <h2 class="section-title">Projektinformation</h2>
+  <div class="info-grid">
+    <div class="info-row"><span class="info-label">Beställare</span>${customer||'—'}</div>
+    <div class="info-row"><span class="info-label">Telefon</span>${telefon||'—'}</div>
+    <div class="info-row"><span class="info-label">Adress</span>${adress||'—'}</div>
+    <div class="info-row"><span class="info-label">E-post</span>${mail||'—'}</div>
+    <div class="info-row"><span class="info-label">Byggstart</span>Vecka ${vecka||'—'}</div>
+    <div class="info-row"><span class="info-label">Offertdatum</span>${datum||today()}</div>
+  </div>
+
+  <!-- ROOMS - moments per category, no prices, "dolda" hidden, no size/version -->
+  <h2 class="section-title">Offertposter per utrymme</h2>
+  ${roomsHTML}
+
+  <!-- ALWAYS INCLUDED - just above totals -->
+  <div style="margin:16px 0;padding:14px 16px;background:#f9f8f6;border-radius:10px;border:1px solid #e8e8e4">
+    <div style="font-size:10px;font-weight:700;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Alltid inkluderat i offerten</div>
+    <ul class="included-grid">
+      ${(offerTexts.alltidInkluderat||defaultTexts.alltidInkluderat).split('\n').filter(l=>l.trim()).map(l=>`<li>${l.trim()}</li>`).join('')}
+      </ul>  </div>
+
+  <!-- TOTALS -->
+  <div class="totals-wrap">
+    <div class="totals-title">Prissammanställning</div>
+    <div class="totals-row"><span>Arbetskostnad exkl moms</span><span>${fmt(totalWorkEx)} kr</span></div>
+    <div class="totals-row"><span>Materialkostnad exkl moms</span><span>${fmt(totalMatEx)} kr</span></div>
+    <div class="totals-row"><span>Moms 25%</span><span>${fmt((totalWorkEx+totalMatEx)*0.25)} kr</span></div>
+    <div class="totals-row main"><span>Totalt inkl moms</span><span>${fmt(totalIncl)} kr</span></div>
+    <div class="totals-row" style="margin-top:10px;font-size:12px"><span>Varav arbetskostnad inkl moms</span><span>${fmt(workIncl)} kr</span></div>
+    <div class="totals-row" style="font-size:12px"><span>Beräknat ROT-avdrag (30% av arbete)</span><span>−${fmt(rotUsed)} kr</span></div>
+    <div class="totals-row rot"><span>Totalpris efter ROT-avdrag</span><span>${fmt(afterRot)} kr</span></div>
+    <div class="totals-row" style="font-size:12px;color:rgba(255,255,255,0.65);padding-top:4px"><span>varav materialkostnad inkl moms</span><span>${fmt(totalMatEx*1.25)} kr</span></div>
+    <div class="rot-note">ROT gäller under förutsättning att utrymme finns enligt Skatteverkets regler.</div>
+  </div>
+
+  ${extraTillvalHTML}
+  ${campaignHTML}
+
+  <!-- TIDSPLAN -->
+  <div class="text-section">
+    <h3>Uppskattad kalendertid</h3>
+    <p>${(offerTexts.tidsplan||defaultTexts.tidsplan)}</p>
+  </div>
+
+  <!-- NI FÅR -->
+  <div class="text-section">
+    <h3>Ni får</h3>
+    <p>${(offerTexts.nigar||defaultTexts.nigar)}</p>
+  </div>
+
+  <!-- BETALNING -->
+  <div class="text-section">
+    <h3>Betalningsvillkor och fakturering</h3>
+    <p>${(offerTexts.betalning||defaultTexts.betalning)}</p>
+  </div>
+
+  <!-- OVRIGT -->
+  <div class="text-section">
+    <h3>Övrigt</h3>
+    <p>${(offerTexts.ovrigt||defaultTexts.ovrigt)}</p>
+  </div>
+
+  <!-- CERT LINKS -->
+  ${certLinksHTML}
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <div>${settings.company||''} · ${settings.phone||''} · ${settings.email||''}</div>
+    ${qualityLogosHTML}
+    <div>Offert ${offertNr||''} · ${datum||today()}</div>
+  </div>
+
+  <div class="no-print" style="text-align:center;padding:28px 0">
+    <button onclick="window.print()" style="padding:12px 28px;background:${accentColor};color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+      🖨 Skriv ut / Spara som PDF
+    </button>
+    <button onclick="window.close()" style="margin-left:10px;padding:12px 20px;background:#eee;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">
+      Stäng
+    </button>
+  </div>
+
+</div></body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────
+const allCatLabels={
+  badrumUtrymmen:'Badrum – Storlekar',
+  badrumVersioner:'Badrum – Versioner (V1–V8)',
+  tvattugaUtrymmen:'Tvättstuga – Storlekar',
+  tvattugaVersioner:'Tvättstuga – Versioner',
+  wcUtrymmen:'WC – Storlekar',
+  wcVersioner:'WC – Versioner',
+  ...catLabels
+};
+function renderAdmin(){
+  const el=document.getElementById('admin-content');
+  el.innerHTML=Object.entries(allCatLabels).map(([cat,label])=>{
+    const arts=articles[cat]||[];
+    return`<div class="admin-cat">
+      <div class="admin-cat-header">
+        <h4>${label}</h4>
+        <button class="btn btn-sm" onclick="addAdminArticle('${cat}')">+ Lägg till artikel</button>
+      </div>
+      <div>
+        <div style="display:flex;gap:8px;padding:8px 16px;background:#f9f9f7;border-bottom:0.5px solid var(--border);font-size:11px;font-weight:600;color:var(--text2)">
+          <span style="flex:2">Namn</span>
+          <span style="width:130px">Grundpris exkl moms</span>
+          <span style="width:90px">% Arbete</span>
+          <span style="width:60px"></span>
+        </div>
+        <div id="admin-cat-${cat}">
+          ${arts.map((a,i)=>`
+            <div class="admin-article-row">
+              <input class="admin-article-name" type="text" value="${a.name}" oninput="updateAdminArticle('${cat}',${i},'name',this.value)">
+              <input class="admin-article-price" type="number" value="${a.baseEx}" oninput="updateAdminArticle('${cat}',${i},'baseEx',parseFloat(this.value)||0)" title="Grundpris exkl moms">
+              <input class="admin-article-work-pct" type="number" value="${a.workPct}" min="0" max="100" oninput="updateAdminArticle('${cat}',${i},'workPct',parseFloat(this.value)||85)" title="% som är arbete (för ROT)">
+              <span style="font-size:11px;color:var(--text3)">% arb</span>
+              <button class="btn btn-sm btn-danger" onclick="removeAdminArticle('${cat}',${i})">✕</button>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderOfferTextsAdmin();
+  renderRoomTemplatesAdmin();
+  // Inject room templates section
+  const rtSection=document.createElement('div');
+  rtSection.innerHTML=`<div class="admin-cat" style="margin-top:1rem">
+    <div class="admin-cat-header"><h4>Rumsmallar</h4></div>
+    <div id="admin-room-templates" style="min-height:40px"></div>
+  </div>`;
+  document.getElementById('admin-content').appendChild(rtSection);
+  renderRoomTemplatesAdmin();
+}
+function updateAdminArticle(cat,i,field,val){
+  if(!articles[cat])return;
+  articles[cat][i][field]=val;
+}
+function addAdminArticle(cat){
+  if(!articles[cat])articles[cat]=[];
+  articles[cat].push({id:uid(),name:'Ny artikel',baseEx:0,workPct:85});
+  renderAdmin();
+}
+function removeAdminArticle(cat,i){
+  if(!confirm('Ta bort artikel?'))return;
+  articles[cat].splice(i,1);
+  renderAdmin();
+}
+function saveArticles(){
+  saveArticlesData();
+  alert('Artiklar sparade!');
+}
+
+// ── CUSTOMER AUTOCOMPLETE ─────────────────────────────────────
+let linkedCustomerId='';
+function populateCustomerList(){
+  const customers=JSON.parse(localStorage.getItem('crm_customers')||'[]');
+  const dl=document.getElementById('customer-list');
+  if(dl)dl.innerHTML=customers.map(c=>`<option value="${c.name}">${c.name} – ${c.adress||''}</option>`).join('');
+}
+function handleURLParams(){
+  const customers=JSON.parse(localStorage.getItem('crm_customers')||'[]');
+  populateCustomerList();
+  const params=new URLSearchParams(window.frameElement?.dataset?.query || window.location.search);
+  const cid=params.get('customer');
+  const eid=params.get('edit');
+  if(cid){
+    const c=customers.find(x=>x.id===cid);
+    if(c){
+      linkedCustomerId=cid;
+      showPage('new');
+      document.getElementById('b-customer').value=c.name||'';
+      document.getElementById('b-telefon').value=c.telefon||'';
+      document.getElementById('b-adress').value=c.adress||'';
+      document.getElementById('b-mail').value=c.mail||'';
+      document.getElementById('b-vecka').value=c.startvecka||'';
+    }
+  } else if(eid){
+    showPage('new');
+    editOffer(eid);
+  }
+}
+
+// ── EXPORT / IMPORT ────────────────────────────────────────────
+function exportAll(){
+  const customers=JSON.parse(localStorage.getItem('crm_customers')||'[]');
+  const templates=JSON.parse(localStorage.getItem('crm_templates')||'[]');
+  const imgSettings=JSON.parse(localStorage.getItem('crm_img_settings')||'{}');
+  const blob=new Blob([JSON.stringify({customers,settings,templates,offerts,articles,imgSettings},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`backup_${today()}.json`;a.click();
+}
+function importAllData(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.customers){localStorage.setItem('crm_customers',JSON.stringify(d.customers));}
+      if(d.settings){settings=d.settings;localStorage.setItem(KEY_SETTINGS,JSON.stringify(settings));}
+      if(d.templates){localStorage.setItem('crm_templates',JSON.stringify(d.templates));}
+      if(d.offerts){offerts=d.offerts;saveOfferts();}
+      if(d.articles){articles=d.articles;saveArticlesData();}
+      if(d.imgSettings){localStorage.setItem('crm_img_settings',JSON.stringify(d.imgSettings));}
+      renderOffertList();
+      alert(`Importerat! ${(d.customers||[]).length} kunder, ${offerts.length} offerter.`);
+    }catch{alert('Ogiltigt filformat.');}
+  };
+  r.readAsText(file);
+}
+
+// ── ROOM TEMPLATES ───────────────────────────────────────────
+const KEY_ROOM_TPLS='crm_room_templates';
+function getRoomTemplates(){return JSON.parse(localStorage.getItem(KEY_ROOM_TPLS)||'[]');}
+function saveRoomAsTemplate(roomId){
+  const room=rooms.find(r=>r.id===roomId);if(!room)return;
+  const name=prompt('Namn på mallen (t.ex. "Badrum V4 standard"):');
+  if(!name)return;
+  const tpls=getRoomTemplates();
+  const tpl={id:uid(),name,type:room.type,sizeId:room.sizeId,versionId:room.versionId,extras:{...room.extras},freeRows:JSON.parse(JSON.stringify(room.freeRows))};
+  tpls.push(tpl);
+  localStorage.setItem(KEY_ROOM_TPLS,JSON.stringify(tpls));
+  populateRoomTemplateSelect();
+  alert('Mall "'+name+'" sparad!');
+}
+function addRoomFromTemplate(tplId){
+  if(!tplId)return;
+  const tpls=getRoomTemplates();
+  const tpl=tpls.find(t=>t.id===tplId);if(!tpl)return;
+  const room={id:uid(),type:tpl.type,sizeId:tpl.sizeId,versionId:tpl.versionId,extras:{...tpl.extras},freeRows:JSON.parse(JSON.stringify(tpl.freeRows||[]))};
+  rooms.push(room);renderRooms();calcSummary();
+}
+function populateRoomTemplateSelect(){
+  const sel=document.getElementById('room-template-select');if(!sel)return;
+  const tpls=getRoomTemplates();
+  sel.innerHTML='<option value="">+ Från mall...</option>'+tpls.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+}
+function deleteRoomTemplate(tplId){
+  if(!confirm('Ta bort mallen?'))return;
+  const tpls=getRoomTemplates().filter(t=>t.id!==tplId);
+  localStorage.setItem(KEY_ROOM_TPLS,JSON.stringify(tpls));
+  renderRoomTemplatesAdmin();populateRoomTemplateSelect();
+}
+function renderRoomTemplatesAdmin(){
+  const el=document.getElementById('admin-room-templates');if(!el)return;
+  const tpls=getRoomTemplates();
+  if(!tpls.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px">Inga mallar sparade ännu.</div>';return;}
+  el.innerHTML=tpls.map(t=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:0.5px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:500">${t.name}</div>
+        <div style="font-size:11px;color:var(--text2)">${t.type} · ${Object.keys(t.extras||{}).length} tillval</div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="deleteRoomTemplate('${t.id}')">Ta bort</button>
+    </div>`).join('');
+}
+
+// ── EXTRA TILLVAL ─────────────────────────────────────────────
+let extraTillvalData=[];
+function renderExtraTillval(){
+  const el=document.getElementById('extra-tillval-rows');if(!el)return;
+  el.innerHTML=extraTillvalData.map((r,i)=>`
+    <div class="extra-tillval-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+      <input type="text" class="et-name" value="${r.name||''}" placeholder="Beskrivning av tillval"
+        oninput="extraTillvalData[${i}].name=this.value"
+        style="flex:1;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <input type="number" class="et-price" value="${r.price||''}" placeholder="Pris inkl moms"
+        oninput="extraTillvalData[${i}].price=parseFloat(this.value)||0"
+        style="width:150px;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <span style="font-size:12px;color:var(--text2)">kr</span>
+      <button class="btn btn-sm btn-danger" onclick="removeExtraTillval(${i})">✕</button>
+    </div>`).join('');
+}
+function addExtraTillval(){extraTillvalData.push({name:'',price:0});renderExtraTillval();}
+function removeExtraTillval(i){extraTillvalData.splice(i,1);renderExtraTillval();}
+
+// ── OFFER TEXTS (editable in admin) ───────────────────────────
+const KEY_OFFER_TEXTS='crm_offer_texts';
+function getDefaultOfferTexts(){return{
+  tidsplan:`Uppskattad kalendertid för genomförande av projektet från byggstart:
+• Ca 20–25 arbetsdagar för standardbadrum om ca 4 m² (röda dagar ej inräknade).
+• Tiden kan variera beroende på torktider och andra faktorer.
+• Slutgiltig tidsplan sätts i samråd med projektledare.
+• Reservation för dolda fel som kan påverka tidsåtgången.
+• Vid befintlig fuktskada som kräver avfuktning fastställs ny byggstart efter avfuktning.`,
+  nigar:`• 2 års garanti på arbetet.
+• 10 års ansvar från Renovera NU på tätskikt.
+• BKR – Våtrumsintyg
+• Säker Vatten Intyg
+• Intyget från Elsäkerhetsverket`,
+  betalning:`• Renovera NU kräver ingen handpenning.
+• Entreprenaden faktureras med 100% efter att våtrummet kan tas i bruk eller all tillgänglig inredning är monterad.
+• Om ni valt måttbeställd inredning som kräver återbesök för montering debiteras kostnaden för separat återbesök.`,
+  ovrigt:`• Offerten är baserad på att befintlig el & vvs är korrekt dragen, att bjälklaget uppfyller kraven som ställs idag, att väggar och golv är av normal beskaffenhet.
+• Offerten förutsätter att entreprenören har fri tillgång till objektet under projektet och kan utföra arbetet obehindrat.
+• Avfuktning vid fuktskada: 13 990 kr upp till 8 veckor i badrum, ev. resekostnad tillkommer. Kostnaden omfattar även driftstopp, administration och inplanerad arbetstid.
+• Vid utebliven betalning utgår dröjsmålsränta med 24%.
+• Uppdragsgivaren ansvarar för att tillhandahålla mått (bredd, höjd och djup) på inredning för ritning som görs av Renovera NU, samt godkänna ritningar och checklista innan arbetet sätts igång (gäller badrum). Ritningarna ritas med en marginal på +/- 8 cm.`,
+  alltidInkluderat:`Genomgång av projektunderlag med beställare
+Skydd av arbetsplats med plast och golvskydd
+Demontering av rör samt proppning av vatten
+Rivning av befintligt ytskikt
+Montering av skivor på befintligt regelverk
+Flytspackling med rätt fall mot golvbrunn
+Tätning golv och väggar (BKR-regler)
+Tröskel i EK och vita dörrfoder
+Plattsättning kakel vägg (15×15–30×60)
+Plattsättning klinker/granitkeramik golv
+Installation ny golvbrunn
+Tappvattenrör i krom med avstängningsventil
+El-golvvärme med kabel, termostat och givare
+El till spotlights (upp till 6 st)
+Spegelbelysning inkl montering
+Målning tak med våtrumsfärg
+Montering handfat/kommod och spegel
+Grovstädning och bortransport av byggsopor`
+};}
+
+function renderOfferTextsAdmin(){
+  const texts=JSON.parse(localStorage.getItem(KEY_OFFER_TEXTS)||'{}');
+  const def=getDefaultOfferTexts();
+  const labels={tidsplan:'Uppskattad kalendertid',nigar:'Ni får',betalning:'Betalningsvillkor',ovrigt:'Övrigt',alltidInkluderat:'Alltid inkluderat i offerten'};
+  const el=document.getElementById('admin-content');
+  if(!el)return;
+  const existing=el.innerHTML;
+  const div=document.createElement('div');
+  div.innerHTML=`<div class="admin-cat" style="margin-top:1rem">
+    <div class="admin-cat-header"><h4>Offerttexter (redigerbara)</h4></div>
+    <div style="padding:1rem">
+      ${Object.entries(labels).map(([k,label])=>`
+        <div style="margin-bottom:1rem">
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">${label}</div>
+          <textarea id="ot-${k}" style="width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:inherit;font-size:12px;outline:none;min-height:100px;resize:vertical">${texts[k]||def[k]}</textarea>
+        </div>`).join('')}
+      <button class="btn btn-primary" onclick="saveOfferTexts()">Spara texter</button>
+      <button class="btn" style="margin-left:8px" onclick="resetOfferTexts()">Återställ original</button>
+    </div>
+  </div>`;
+  el.appendChild(div);
+}
+function saveOfferTexts(){
+  const keys=['tidsplan','nigar','betalning','ovrigt','alltidInkluderat'];
+  const texts={};
+  keys.forEach(k=>{const el=document.getElementById('ot-'+k);if(el)texts[k]=el.value;});
+  localStorage.setItem(KEY_OFFER_TEXTS,JSON.stringify(texts));
+  alert('Texter sparade!');
+}
+function resetOfferTexts(){
+  if(!confirm('Återställa alla texter till original?'))return;
+  localStorage.removeItem(KEY_OFFER_TEXTS);
+  renderAdmin();
+}
+
+// Store extraTillval for print access
+function storeExtraTillvalForPrint(){
+  localStorage.setItem('crm_extra_tillval_tmp',JSON.stringify(extraTillvalData));
+}
+
+// ── IMAGE SETTINGS ────────────────────────────────────────────
+const KEY_IMG = 'crm_img_settings';
+function getImgSettings(){return JSON.parse(localStorage.getItem(KEY_IMG)||'{}');}
+
+function renderImgSettings(){
+  const img=getImgSettings();
+  // header image preview
+  const hp=document.getElementById('header-img-preview');
+  if(hp&&img.headerImage){hp.innerHTML=`<img src="${img.headerImage}" style="width:100%;height:100%;object-fit:cover">`;}
+  // quality logos
+  renderQualityLogosGrid();
+  // logo size picker
+  const sp=document.getElementById('logoSizePicker');
+  if(sp)sp.value=img.logoSize||'32';
+  // cert links
+  renderCertLinksAdmin();
+  // accent color
+  const cp=document.getElementById('accentColorPicker');
+  if(cp)cp.value=img.accentColor||'#1a3a5c';
+}
+function saveLogoSize(val){
+  const img=getImgSettings();
+  img.logoSize=val;
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+}
+function renderQualityLogosGrid(){
+  const img=getImgSettings();
+  const logos=img.qualityLogos||[];
+  const el=document.getElementById('quality-logos-grid');if(!el)return;
+  el.innerHTML=logos.map((src,i)=>`
+    <div style="position:relative;width:80px;height:50px;border-radius:var(--r);border:0.5px solid var(--border2);overflow:hidden;background:white">
+      <img src="${src}" style="width:100%;height:100%;object-fit:contain;padding:4px">
+      <button onclick="removeQualityLogo(${i})" style="position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,0.5);border:none;border-radius:50%;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    </div>`).join('');
+}
+function handleHeaderImg(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=getImgSettings();
+    img.headerImage=ev.target.result;
+    localStorage.setItem(KEY_IMG,JSON.stringify(img));
+    const hp=document.getElementById('header-img-preview');
+    if(hp)hp.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+  };
+  r.readAsDataURL(file);
+}
+function removeHeaderImg(){
+  const img=getImgSettings();delete img.headerImage;
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+  const hp=document.getElementById('header-img-preview');
+  if(hp)hp.innerHTML='Ingen bild vald';
+}
+function handleQualityLogo(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=getImgSettings();
+    if(!img.qualityLogos)img.qualityLogos=[];
+    if(img.qualityLogos.length>=6){alert('Max 6 loggor');return;}
+    img.qualityLogos.push(ev.target.result);
+    localStorage.setItem(KEY_IMG,JSON.stringify(img));
+    renderQualityLogosGrid();
+  };
+  r.readAsDataURL(file);
+}
+function removeQualityLogo(i){
+  const img=getImgSettings();
+  img.qualityLogos.splice(i,1);
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+  renderQualityLogosGrid();
+}
+function renderCertLinksAdmin(){
+  const img=getImgSettings();
+  const links=img.certLinks||[];
+  const el=document.getElementById('cert-links-list');if(!el)return;
+  el.innerHTML=links.map((l,i)=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+      <input type="text" value="${l.label||''}" placeholder="Etikett (ex: BKR Intyg)" oninput="updateCertLink(${i},'label',this.value)"
+        style="flex:1;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <input type="text" value="${l.url||''}" placeholder="URL (ex: https://...)" oninput="updateCertLink(${i},'url',this.value)"
+        style="flex:2;padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:12px;outline:none;font-family:inherit">
+      <button class="btn btn-sm btn-danger" onclick="removeCertLink(${i})">✕</button>
+    </div>`).join('');
+}
+function addCertLink(){
+  const img=getImgSettings();if(!img.certLinks)img.certLinks=[];
+  img.certLinks.push({label:'',url:''});
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+  renderCertLinksAdmin();
+}
+function updateCertLink(i,field,val){
+  const img=getImgSettings();if(!img.certLinks)img.certLinks=[];
+  img.certLinks[i][field]=val;
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+}
+function removeCertLink(i){
+  const img=getImgSettings();
+  img.certLinks.splice(i,1);
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+  renderCertLinksAdmin();
+}
+function saveImgSettings(){
+  const img=getImgSettings();
+  img.accentColor=document.getElementById('accentColorPicker')?.value||'#1a3a5c';
+  localStorage.setItem(KEY_IMG,JSON.stringify(img));
+  alert('Bildinställningar sparade!');
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+function applyLogo(){
+  const sl=document.getElementById('sidebarLogo');
+  if(settings.logo) sl.innerHTML=`<img src="${settings.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px">`;
+  if(settings.company) document.getElementById('sidebarCompany').textContent=settings.company;
+}
+
+document.getElementById('b-datum').value=today();
+applyLogo();
+// Check URL params before showing default page
+const _initParams=new URLSearchParams(window.frameElement?.dataset?.query || window.location.search);
+if(_initParams.get('customer')||_initParams.get('edit')){
+  handleURLParams();
+} else {
+  showPage('list');
+}
+populateRoomTemplateSelect();
+</script>
+</body>
+</html>
+</template>
+
+<script>
+(function(){
+  // ── LÖSENORD — byt här ──────────────────────────────────────
+  const PASSWORD = 'Stampen2026!';
+
+  // ── LÖSENORDSSKYDD ───────────────────────────────────────────
+  function checkAuth(){
+    return sessionStorage.getItem('crm_auth') === 'ok';
+  }
+  function showLoginScreen(){
+    document.body.innerHTML = `
+      <div style="min-height:100vh;background:#1a3a5c;display:flex;align-items:center;justify-content:center;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif">
+        <div style="background:white;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center">
+          <div style="font-size:36px;margin-bottom:1rem">🔒</div>
+          <div style="font-size:20px;font-weight:700;color:#1a3a5c;margin-bottom:6px">CRM & Offertsystem</div>
+          <div style="font-size:13px;color:#888;margin-bottom:1.5rem">Ange lösenord för att fortsätta</div>
+          <input id="pw-input" type="password" placeholder="Lösenord" autofocus
+            style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;outline:none;font-family:inherit;margin-bottom:10px;box-sizing:border-box"
+            onkeydown="if(event.key==='Enter')tryLogin()">
+          <div id="pw-error" style="color:#c0392b;font-size:12px;min-height:18px;margin-bottom:8px"></div>
+          <button onclick="tryLogin()"
+            style="width:100%;padding:11px;background:#1a3a5c;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">
+            Logga in
+          </button>
+        </div>
+      </div>`;
+  }
+  window.tryLogin = function(){
+    const val = document.getElementById('pw-input').value;
+    if(val === PASSWORD){
+      sessionStorage.setItem('crm_auth','ok');
+      location.reload();
+    } else {
+      document.getElementById('pw-error').textContent = 'Fel lösenord, försök igen.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  };
+  if(!checkAuth()){
+    showLoginScreen();
+    return;
+  }
+
+  // ── SUPABASE CONFIG ──────────────────────────────────────────
+  const SB_URL  = 'https://jykjmgvvmxpunyvqvlyx.supabase.co';
+  const SB_KEY  = 'sb_publishable_DCTQALPlGi8CzBJ2cz5iOg_-ydcMDP4';
+  const SYNC_KEYS = ['crm_customers','crm_settings','crm_templates','crm_offerts',
+                     'crm_articles','crm_img_settings','crm_room_templates','crm_offer_texts'];
+  let syncPending = false;
+  let syncTimer   = null;
+  let syncStatus  = null; // DOM element
+
+  // ── SUPABASE HELPERS ─────────────────────────────────────────
+  async function sbGet(key){
+    try{
+      const r = await fetch(`${SB_URL}/rest/v1/crm_store?key=eq.${encodeURIComponent(key)}&select=value`,{
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+      if(!r.ok) return null;
+      const d = await r.json();
+      return d.length ? d[0].value : null;
+    }catch{return null;}
+  }
+  async function sbSet(key, value){
+    try{
+      await fetch(`${SB_URL}/rest/v1/crm_store`,{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
+                 'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+        body: JSON.stringify({key, value})
+      });
+    }catch{}
+  }
+  async function sbGetAll(){
+    try{
+      const r = await fetch(`${SB_URL}/rest/v1/crm_store?select=key,value`,{
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+      if(!r.ok) return null;
+      return await r.json(); // [{key,value}]
+    }catch{return null;}
+  }
+
+  // ── SYNC STATUS INDICATOR ────────────────────────────────────
+  function showSyncStatus(msg, color){
+    if(!syncStatus) return;
+    syncStatus.textContent = msg;
+    syncStatus.style.color = color;
+    syncStatus.style.opacity = '1';
+    if(color === '#7dd3b0'){
+      setTimeout(()=>{ if(syncStatus) syncStatus.style.opacity='0.4'; }, 3000);
+    }
+  }
+
+  // ── PUSH: localStorage → Supabase ───────────────────────────
+  async function pushToCloud(){
+    showSyncStatus('☁ Synkar...', '#f0c060');
+    const pairs = SYNC_KEYS
+      .map(k => ({ key: k, value: localStorage.getItem(k)||'' }));
+    try{
+      await fetch(`${SB_URL}/rest/v1/crm_store`,{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
+                 'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+        body: JSON.stringify(pairs)
+      });
+      showSyncStatus('☁ Synkad', '#7dd3b0');
+    }catch{
+      showSyncStatus('☁ Offline', '#f09595');
+    }
+  }
+
+  // ── PULL: Supabase → localStorage ───────────────────────────
+  async function pullFromCloud(){
+    showSyncStatus('☁ Hämtar...', '#f0c060');
+    const rows = await sbGetAll();
+    if(!rows){ showSyncStatus('☁ Offline', '#f09595'); return false; }
+    if(!rows.length){ showSyncStatus('☁ Ingen molndata', '#f0c060'); return false; }
+    rows.forEach(({key, value})=>{
+      if(SYNC_KEYS.includes(key) && value) localStorage.setItem(key, value);
+    });
+    showSyncStatus('☁ Synkad', '#7dd3b0');
+    return true;
+  }
+
+  // ── DEBOUNCED AUTO-PUSH ──────────────────────────────────────
+  // Called from within iframe apps via parent.schedulePush()
+  window.schedulePush = function(){
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushToCloud, 1500);
+  };
+
+  // ── PATCH localStorage inside iframes to auto-push ───────────
+  // We inject a small script into each iframe template that wraps
+  // localStorage.setItem to call parent.schedulePush()
+  const PATCH = `<script>
+(function(){
+  const _set = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k,v){
+    _set(k,v);
+    try{ if(parent && parent.schedulePush) parent.schedulePush(); }catch{}
+  };
+})();
+<\/script>`;
+
+  // ── FRAME + TEMPLATES ────────────────────────────────────────
+  const frame = document.getElementById('appFrame');
+  const tplCRM    = document.getElementById('tpl-crm');
+  const tplOffert = document.getElementById('tpl-offert');
+
+  window.loadApp = function(app, query){
+    query = query || '';
+    const tpl = app === 'offert' ? tplOffert : tplCRM;
+    if(!tpl) return;
+    frame.dataset.query = query ? ('?' + String(query).replace(/^\?/,'')) : '';
+    // Inject sync patch into template
+    let src = tpl.innerHTML;
+    src = src.replace('<head>', '<head>' + PATCH);
+    frame.srcdoc = src;
+    try{
+      const hash = query ? '#'+app+'?'+String(query).replace(/^\?/,'') : '#'+app;
+      history.replaceState(null,'',hash);
+    }catch{}
+    // Update sync status element reference after iframe loads
+    frame.addEventListener('load', function onLoad(){
+      frame.removeEventListener('load', onLoad);
+      try{
+        syncStatus = frame.contentDocument?.getElementById('sync-status') || null;
+      }catch{}
+    },{once:true});
+  };
+
+  // ── MANUAL SYNC BUTTON (callable from iframe) ────────────────
+  window.manualPull = async function(){
+    const ok = await pullFromCloud();
+    if(ok){
+      // Reload current app to reflect new data
+      const raw = (location.hash||'#crm').slice(1);
+      const [appPart, queryPart] = raw.split('?');
+      loadApp(appPart==='offert'?'offert':'crm', queryPart||'');
+    }
+  };
+
+  // ── SAVE AS HTML ─────────────────────────────────────────────
+  window.saveAsHTML = function(){
+    const keys = SYNC_KEYS;
+    const data = {};
+    keys.forEach(k=>{ const v=localStorage.getItem(k); if(v) data[k]=v; });
+    const dataJSON = JSON.stringify(data).replace(/<\/script>/gi,'<\\/script>');
+    let html = document.documentElement.outerHTML;
+    html = html.replace(/<!-- BOOTSTRAP_DATA_START -->[\s\S]*?<!-- BOOTSTRAP_DATA_END -->/,'');
+    const bootstrap = `<!-- BOOTSTRAP_DATA_START -->
+<script>
+(function(){
+  const data=${dataJSON};
+  Object.entries(data).forEach(([k,v])=>{ if(!localStorage.getItem(k)) localStorage.setItem(k,v); });
+})();
+<\/script>
+<!-- BOOTSTRAP_DATA_END -->`;
+    html = html.replace('</body>', bootstrap+'\n</body>');
+    const blob = new Blob([html],{type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `crm_offert_${new Date().toISOString().slice(0,10)}.html`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // ── STARTUP: pull from cloud, then start app ──────────────────
+  async function startFromHash(pull){
+    const raw = (location.hash||'#crm').slice(1);
+    const [appPart, queryPart] = raw.split('?');
+    const app = appPart==='offert'?'offert':'crm';
+    if(pull) await pullFromCloud();
+    loadApp(app, queryPart||'');
+  }
+
+  window.addEventListener('hashchange', ()=> startFromHash(false));
+
+  // On first load: pull from Supabase first so we have latest data
+  startFromHash(true);
+
+})();
+</script>
+</body>
+</html>
